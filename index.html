@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Placement Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2fb;--card:#fff;--ink:#0f1c3f;--mut:#5a6685;--navy:#14275e;--line:#14275e;--blue:#4c7dff;--green:#2fbf71;--yel:#ffc83d;--red:#ff5d6c;--pk:#f3e8ff;--bl:#e3edff;--gr:#dcf7e8;--ye:#fff3cc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1330;--card:#14204a;--ink:#eef2ff;--mut:#a5b1d6;--line:#6f8cff;--bl:#1d2f6b;--gr:#14402c;--ye:#4a3e12;--pk:#2e2255}}
+:root[data-theme=dark]{--bg:#0b1330;--card:#14204a;--ink:#eef2ff;--mut:#a5b1d6;--line:#6f8cff;--bl:#1d2f6b;--gr:#14402c;--ye:#4a3e12;--pk:#2e2255}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:700 16px/1.5 Nunito,system-ui,sans-serif}
+h1,h2,h3{font-family:'Lilita One',system-ui,sans-serif;font-weight:400;margin:0 0 .4em;letter-spacing:.3px}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:auto;padding:12px}
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--navy);color:#fff;border-radius:0 0 18px 18px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.lv{background:var(--yel);color:#14275e;font-family:'Lilita One';border-radius:12px;padding:4px 12px;font-size:20px;box-shadow:0 3px 0 #b88a00}
+.xpb{flex:1;min-width:140px;height:16px;background:#ffffff30;border-radius:9px;overflow:hidden}.xpb i{display:block;height:100%;background:var(--green);transition:width .6s cubic-bezier(.2,1.4,.4,1)}
+.hud small{opacity:.85}.hud button{background:none;border:2px solid #fff6;color:#fff;border-radius:10px;padding:2px 8px;cursor:pointer}
+nav{display:flex;gap:8px;overflow-x:auto;padding:14px 2px}
+nav button{white-space:nowrap;background:var(--card);border:3px solid var(--line);border-radius:14px;padding:8px 14px;cursor:pointer;box-shadow:0 4px 0 var(--line);transition:transform .1s,box-shadow .1s}
+nav button:active,.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+nav button.on{background:var(--blue);color:#fff}
+.card{background:var(--card);border:3px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 5px 0 var(--line)}
+.btn{background:var(--green);color:#06301a;border:3px solid var(--line);border-radius:12px;padding:7px 14px;cursor:pointer;box-shadow:0 4px 0 var(--line);font-weight:800}
+.btn.alt{background:var(--yel);color:#14275e}.btn.bad{background:var(--red);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal div{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;background:var(--bl);border:2px solid transparent}
+.cal .h{aspect-ratio:auto;background:none;color:var(--mut);font-size:12px}
+.cal .done{background:var(--gr)}.cal .today{border-color:var(--blue);background:var(--bl);animation:pulse 1.6s infinite}
+.cal .pend{background:var(--ye)}.cal .miss{background:var(--pk)}.cal .lock{opacity:.55}
+@keyframes pulse{50%{box-shadow:0 0 0 6px #4c7dff40}}
+.node{border:3px solid var(--line);border-radius:16px;padding:10px;background:var(--card);cursor:pointer;text-align:left;box-shadow:0 4px 0 var(--line);position:relative}
+.node.lock{opacity:.5;cursor:not-allowed}.node.done{background:var(--gr)}
+.auth-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#eef2fb 0%,#dce8ff 100%);color:#0f1c3f}
+.auth-screen[hidden]{display:none}.auth-card{width:min(430px,100%);background:#fff;border:3px solid #14275e;border-radius:24px;padding:30px;box-shadow:0 8px 0 #14275e;text-align:center}
+.auth-logo{width:72px;height:72px;border-radius:18px;background:#14275e;color:#ffc83d;display:grid;place-items:center;font:400 34px 'Lilita One';margin:0 auto 16px;transform:rotate(-4deg)}
+.auth-card h1{font-size:38px;margin-bottom:8px}.auth-card>p{color:#5a6685;margin:0 0 22px}
+.google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;color:#1f1f1f;border:2px solid #14275e;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 #14275e}
+.google-btn:hover{background:#f8faff}.google-btn svg{width:22px;height:22px}
+.auth-error{min-height:24px;color:#b42318;margin-top:14px;font-size:14px}
+.auth-user{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.auth-loading{position:fixed;inset:0;z-index:19;display:grid;place-items:center;background:var(--bg)}
+.bar{height:12px;background:var(--bl);border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green);transition:width .5s}
+.pill{display:inline-block;border-radius:20px;padding:1px 10px;font-size:13px;background:var(--bl)}
+input,select,textarea{width:100%;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:7px;margin:3px 0 8px}
+label.ck{display:flex;gap:8px;align-items:center;margin:4px 0}label.ck input{width:20px;height:20px;margin:0}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;background:var(--card);border:3px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
+.opt.ok{background:var(--gr)}.opt.no{background:var(--pk)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:14px;border:3px solid var(--yel);animation:pop .4s cubic-bezier(.2,1.6,.4,1);z-index:9;max-width:92vw}
+@keyframes pop{from{transform:translateX(-50%) scale(.6);opacity:0}}
+a{color:var(--blue)}.mut{color:var(--mut)}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+</head><body>
+<div class="auth-loading" id="authLoading">Loading Placement Quest...</div>
+<section class="auth-screen" id="authScreen" hidden>
+ <div class="auth-card">
+  <div class="auth-logo">PQ</div>
+  <h1>Placement Quest</h1>
+  <p>Sign in to sync your learning quest across devices.</p>
+  <button class="google-btn" id="googleLogin" type="button">
+   <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.2c0-.64-.06-1.26-.16-1.85H12v3.51h5.24a4.48 4.48 0 0 1-1.94 2.94v2.4h3.15c1.84-1.69 2.9-4.18 2.9-7Z"/><path fill="#34A853" d="M12 21.75c2.62 0 4.82-.87 6.43-2.35l-3.15-2.4c-.87.58-1.98.93-3.28.93-2.52 0-4.66-1.7-5.42-3.99H3.33v2.47A9.4 9.4 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M6.58 13.94A5.65 5.65 0 0 1 6.28 12c0-.67.11-1.33.3-1.94V7.59H3.33A9.4 9.4 0 0 0 2.62 12c0 1.59.38 3.09 1.05 4.41l2.91-2.47Z"/><path fill="#EA4335" d="M12 6.07c1.43 0 2.7.49 3.71 1.45l2.79-2.79A9.04 9.04 0 0 0 12 2.25a9.4 9.4 0 0 0-8.67 5.34l3.25 2.47A5.72 5.72 0 0 1 12 6.07Z"/></svg>
+   Continue with Google
+  </button>
+  <div class="auth-error" id="authError" role="alert"></div>
+ </div>
+</section>
+<div id="appShell" hidden>
+<div class="hud"><span class="lv" id="lv">LV 1</span><div style="flex:1;min-width:150px"><div class="xpb"><i id="xpf" style="width:0"></i></div><small id="xpt"></small></div><span id="stk">🔥 0</span><button id="authUser" class="auth-user" type="button" title="Sign out">Account</button><button id="th" aria-label="Toggle theme">◐</button></div>
+<div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const K='pq_v1';
+let S;
+try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+S=Object.assign({xp:0,start:null,checkins:[],lr:{},quiz:{},sun:{},certs:[],marks:[],li:{},proj:{},theme:null},S||{});
+let progressSaveTimer=null;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Storage is full. Remove a PDF or use a certificate link instead.')}queueProgressSave()};
+async function queueProgressSave(){
+ if(!window.firebaseAuthUser)return;
+ clearTimeout(progressSaveTimer);
+ progressSaveTimer=setTimeout(async()=>{
+  try{
+   const token=await window.firebaseAuthUser.getIdToken();
+   await fetch('/api/progress',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({
+    xp:S.xp,
+    challengeStartedAt:S.start,
+    theme:S.theme,
+    state:S
+   })});
+  }catch(e){console.error('Unable to save progress to SQL database',e)}
+ },400);
+}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>ds(new Date());
+const addD=(s,n)=>{const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return ds(d)};
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2600)}
+function xp(n,m){const o=Math.floor(S.xp/100);S.xp+=n;save();hud();toast('+'+n+' XP '+(m||''));if(Math.floor(S.xp/100)>o)setTimeout(()=>toast('⭐ LEVEL UP! You reached level '+(Math.floor(S.xp/100)+1)),900)}
+function streak(){let c=0,d=today();if(!S.checkins.includes(d))d=addD(d,-1);while(S.checkins.includes(d)){c++;d=addD(d,-1)}return c}
+function hud(){$('#lv').textContent='LV '+(Math.floor(S.xp/100)+1);$('#xpf').style.width=(S.xp%100)+'%';$('#xpt').textContent=(S.xp%100)+' / 100 XP';$('#stk').textContent='🔥 '+streak()+' day streak'}
+const TOP=['Number Series','Alphabet Series','Coding and Decoding','Analogy','Classification','Blood Relations','Sunday Test 1','Direction Sense','Ranking and Ordering','Seating Arrangement','Circular Arrangement','Syllogism','Venn Diagrams','Sunday Test 2','Statement and Conclusion','Statement and Assumption','Statement and Argument','Data Sufficiency','Logical Puzzles','Input and Output','Sunday Test 3','Calendar Reasoning','Clock Reasoning','Non-Verbal Reasoning','Mirror and Water Images','Paper Folding and Cutting','Cubes and Dice','Sunday Test 4','Mixed Reasoning','Full Mock Test'];
+const LEARN={0:{t:'A number series follows a hidden rule. Find the rule from the gaps between terms, then apply it to the next term.',tips:['Check differences (+, −).','Check multiples (×2, ×3).','Check squares, cubes and alternating patterns.'],q:[['Next: 2, 4, 6, 8, ?',['9','10','12','14'],1,'Add 2 each time.'],['Next: 3, 6, 12, 24, ?',['36','42','48','30'],2,'Multiply by 2.'],['Next: 1, 4, 9, 16, ?',['20','25','36','24'],1,'Squares of 1,2,3,4,5.'],['Next: 5, 6, 8, 11, 15, ?',['18','19','20','21'],2,'Differences grow +1,+2,+3,+4,+5.'],['Next: 2, 3, 5, 9, 17, ?',['25','31','33','35'],2,'Differences 1,2,4,8,16 → 17+16=33.']]},
+1:{t:'Alphabet series use letter positions (A=1 … Z=26). Look at the jump between letters.',tips:['Write positions: A1 B2 … Z26.','Check forward and backward jumps.','Opposite letter pairs sum to 27.'],q:[['Next: A, C, E, G, ?',['H','I','J','K'],1,'Skip one letter each time.'],['Next: Z, X, V, T, ?',['S','R','Q','P'],1,'Go back by 2.'],['Opposite of D (position from the end)?',['W','V','X','U'],0,'D=4, 27−4=23 → W.'],['Next: B, E, H, K, ?',['L','M','N','O'],2,'Jump of 3.'],['Next: AZ, BY, CX, ?',['DW','DV','EW','CW'],0,'First +1, second −1.']]}};
+function curDay(){return S.start?Math.min(30,Math.floor((new Date(today())-new Date(S.start))/864e5)+1):0}
+function status(d){const dt=addD(S.start,d-1),t=today();if(dt>t)return'lock';if(S.lr[d]?.done)return'done';if(dt===t)return S.checkins.includes(t)?'pend':'today';return'miss'}
+let tab='home',openDay=0,qs=null,calM=new Date();
+const TABS=[['home','🏠 Home'],['ap','➗ Aptitude'],['lr','🧠 Reasoning'],['ss','🗣 Soft Skills'],['cert','🎓 Certs'],['proj','🛠 Project']];
+function nav(){$('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${tab===k?'on':''}" data-t="${k}">${l}</button>`).join('');$('#nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.t;openDay=0;sOpen=0;apOpen=0;pOpen=null;pOpen=-1;nav();render()}}}
+function render(){({home,ap,lr,ss,cert,proj})[tab]()}
+function home(){
+ const t=today(),ci=S.checkins.includes(t),A=S.ap&&S.ap.start?S.ap:null,cn=S.start?curDay():0,acts=[];
+ if(!S.start)acts.push([`Start the 30-day Reasoning and Soft Skills challenge`,'Start','st']);
+ else if(!ci)acts.push([`Check in to unlock today's Reasoning and Soft Skills tasks`,'Check In Today','ci']);
+ else if(cn>=1&&cn<=30){if(!S.lr[cn]?.done)acts.push([`Reasoning · Day ${cn}: ${TOP[cn-1]}`,'Open','lr']);if(!(S.ss&&S.ss[cn]?.done))acts.push([`Soft Skills · Day ${cn}: ${SK[cn-1]}`,'Open','ss'])}
+ if(!A)acts.push([`Start the 30-day Aptitude challenge`,'Start','ap']);
+ else{const n=apN(t);if(n>=1&&n<=30&&!A.d[n]?.done)acts.push([`Aptitude · Day ${n}: ${APS[n-1]}${A.ci.includes(t)?'':' (check in first)'}`,'Open','ap'])}
+ const ip=S.certs.filter(c=>c.steps&&c.steps.some(Boolean)&&!c.steps[4]).length;if(ip)acts.push([`${ip} certification${ip>1?'s':''} in progress`,'Open','cert']);
+ const pd=PS.filter((_,i)=>S.proj[i]?.s==='Completed').length,cd=S.certs.filter(c=>c.steps?.[4]).length;
+ const aks=(()=>{if(!A)return 0;let c=0,d=A.ci.includes(t)?t:addD(t,-1);while(A.ci.includes(d)){c++;d=addD(d,-1)}return c})();
+ $('#main').innerHTML=`<div class='card'><h1>Your tracking page</h1><p class='mut'>Everything you need to do today, in one place.</p></div><div class='grid'><div class='card'><h3>🔥 Check-in streak</h3><b>${streak()} days</b></div><div class='card'><h3>🔥 Aptitude streak</h3><b>${aks} days</b></div><div class='card'><h3>🎓 Certifications done</h3><b>${cd}</b> of ${S.certs.length}</div><div class='card'><h3>🛠 Project steps completed</h3><b>${pd}</b> of 20</div><div class='card'><h3>🚀 Projects live</h3><b>${(S.pl||[]).filter(x=>x.live).length}</b> of ${(S.pl||[]).length}</div></div><div class='card'><h2>Project tracker</h2><div class='bar'><i style='width:${pd*5}%'></i></div><p class='mut'>${pd}/20 steps completed</p>${(S.pl||[]).length?(S.pl).map(x=>`<div class='row' style='justify-content:space-between;margin:8px 0'><span><b>${esc(x.name)}</b> <span class='pill'>${x.live?'✅ Live':'🛠 In progress'}</span></span>${x.live?`<a class='btn alt' href='${esc(x.live)}' target='_blank' rel='noopener noreferrer' style='text-decoration:none'>Open live</a>`:`<button class='btn' data-go='proj'>Add live link</button>`}</div>`).join(''):`<p class='mut'>No projects yet. Add one in the Project tab.</p>`}<button class='btn alt' data-go='proj'>Open Project tab</button></div><div class='card'><h2>Action required today</h2>${acts.length?acts.map(a=>`<div class='row' style='justify-content:space-between;margin:8px 0'><span>${esc(a[0])}</span><button class='btn' data-go='${a[2]}'>${a[1]}</button></div>`).join(''):'<p>🎉 All done for today. Nice work!</p>'}</div><div class='grid'>${TABS.filter(x=>x[0]!=='home').map(x=>`<button class='node' data-go='${x[0]}'><b>${x[1]}</b></button>`).join('')}</div>`;
+ $('#main').onclick=e=>{const b=e.target.closest('[data-go]');if(!b)return;const g=b.dataset.go;
+  if(g==='ci'){if(!S.checkins.includes(t)){S.checkins.push(t);save();xp(10);toast(`Today's tasks unlocked!`)}return home()}
+  if(g==='st'){S.start=t;save();toast('Challenge started! Day 1 is open.');return home()}
+  tab=g;nav();render()}}
+function homeOld(){
+ const t=today(),ci=S.checkins.includes(t),y=calM.getFullYear(),m=calM.getMonth(),first=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate();
+ let cells=['S','M','T','W','T','F','S'].map(d=>`<div class="h">${d}</div>`).join('')+'<div class="h"></div>'.repeat(first);
+ for(let i=1;i<=n;i++){const d=ds(new Date(y,m,i));let c='lock',ic='🔒';
+  if(d===t){c=ci?'pend':'today';ic=ci?'🟡':'🔓'}else if(d<t){c=S.checkins.includes(d)?'done':'miss';ic=S.checkins.includes(d)?'✅':'•'}
+  const day=S.start?Math.floor((new Date(d)-new Date(S.start))/864e5)+1:0;if(day>=1&&day<=30&&S.lr[day]?.done)c='done',ic='✅';
+  cells+=`<div class="${c}"><b>${i}</b><span>${ic}</span></div>`}
+ const done=Object.values(S.lr).filter(x=>x.done).length;
+ $('#main').innerHTML=`<div class="card"><h1>Welcome back, player!</h1><p class="mut">Check in each day to unlock the quest. Earn XP, keep your streak alive, level up.</p>
+ <div class="row"><button class="btn" id="ci" ${ci?'disabled':''}>${ci?'✔ Checked in today':'⚔ Check In Today'}</button>${!S.start?'<button class="btn alt" id="st">Start 30-Day Challenge</button>':'<span class="pill">Challenge Day '+curDay()+' / 30</span>'}</div></div>
+ <div class="card"><div class="row" style="justify-content:space-between"><button class="btn alt" id="pm">◀</button><h2 style="margin:0">${calM.toLocaleString('default',{month:'long'})} ${y}</h2><button class="btn alt" id="nm">▶</button></div><br><div class="cal">${cells}</div>
+ <p class="mut" style="font-size:14px">✅ done · 🔓 today · 🟡 checked in, pending · 🔒 future · • missed (still open)</p></div>
+ <div class="grid"><div class="card"><h3>Check-ins</h3>${S.checkins.length}</div><div class="card"><h3>Topics done</h3>${done} / 30</div><div class="card"><h3>Streak</h3>${streak()}</div><div class="card"><h3>Certs done</h3>${S.certs.filter(c=>c.status==='Completed').length}</div></div>`;
+ $('#ci').onclick=()=>{if(S.checkins.includes(today()))return;S.checkins.push(today());save();xp(10,'· Today\'s Task Unlocked!');home()};
+ const s=$('#st');if(s)s.onclick=()=>{S.start=today();save();toast('Challenge started! Day 1 is open.');home()};
+ $('#pm').onclick=()=>{calM=new Date(y,m-1,1);home()};$('#nm').onclick=()=>{calM=new Date(y,m+1,1);home()}}
+function lr(){
+ if(!S.start){$('#main').innerHTML='<div class="card"><h2>Logical Reasoning Quest</h2><p>Start the 30-day challenge from Home to unlock Day 1.</p></div>';return}
+ if(openDay)return day();
+ const wk=['Basic Reasoning','Arrangement & Relationships','Critical & Analytical','Non-Verbal & Visual','Final Prep'];
+ let h='<h2>Logical Reasoning · 30 Levels</h2>';
+ wk.forEach((w,i)=>{h+=`<h3>Week ${i+1} · ${w}</h3><div class="grid">`;for(let d=i*7+1;d<=Math.min(30,i*7+7);d++){const st=status(d);if(d===29&&i===4)h+='';
+  h+=`<button class="node ${st==='lock'?'lock':st==='done'?'done':''}" data-d="${d}"><b>Day ${d}</b><br>${esc(TOP[d-1])}<br><span class="pill">${{lock:'🔒 Locked',done:'✅ Done',pend:'🟡 Open',today:'🔓 Check in first',miss:'🔴 Missed · open'}[st]}</span></button>`}h+='</div>'});
+ $('#main').innerHTML=h;
+ $('#main').onclick=e=>{const b=e.target.closest('.node');if(!b)return;const d=+b.dataset.d,st=status(d);
+  if(st==='lock')return toast('🔒 This level unlocks on its scheduled date.');
+  if(st==='today')return toast('Check in on Home to unlock today\'s task.');
+  openDay=d;qs=null;lr()}}
+function day(){
+ const d=openDay,L=LEARN[d-1],R=S.lr[d]=S.lr[d]||{c:[0,0,0,0,0]},items=['Learned the concept','Understood rules and patterns','Practiced 20 questions','Completed the 5-question quiz','Revised incorrect answers'];
+ const qz=S.quiz[d];
+ let h=`<button class="btn alt" id="bk">◀ Map</button><div class="card"><h2>Day ${d} · ${esc(TOP[d-1])}</h2>`;
+ if(L)h+=`<p>${esc(L.t)}</p><ul>${L.tips.map(t=>'<li>'+esc(t)+'</li>').join('')}</ul>`;else h+='<p class="mut">Lesson content for this topic is not written yet in this build. You can still tick off your own study using the checklist.</p>';
+ h+='</div>';
+ if(L){h+=`<div class="card"><h3>Daily Quiz</h3>`;
+  if(qs){const q=L.q[qs.i];h+=`<p><span class="pill">Question ${qs.i+1}/5</span></p><p>${esc(q[0])}</p>`+q[1].map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join('')}
+  else h+=(qz?`<p>Best score: <b>${qz.best}/5</b> · attempts: ${qz.n}</p>`:'')+'<button class="btn" id="sq">Start quiz</button>';
+  h+='</div>'}
+ const TS={7:[25,20,30],14:[30,24,35],21:[30,24,35],28:[35,28,40],30:[40,0,0]}[d];
+ if(TS)h+=`<div class="card"><h3>${d===30?'Full Mock Test':'Sunday Test'} · ${TS[0]} questions${TS[2]?' · '+TS[2]+' min':''}${TS[1]?' · target '+TS[1]:''}</h3><p class="mut">Take this test outside the site and log your score here.</p><input type="number" id="ms" min="0" max="${TS[0]}" placeholder="Score out of ${TS[0]}" value="${R.ms??''}"><button class="btn" id="msv">Save score</button>${R.ms!=null?`<p>${Math.round(R.ms/TS[0]*100)}%${TS[1]?(R.ms>=TS[1]?' · 🎯 Target achieved':' · 📈 Needs improvement'):''}</p>`:''}</div>`;
+ h+=`<div class="card"><h3>Completion checklist</h3>${items.map((t,i)=>`<label class="ck"><input type="checkbox" data-c="${i}" ${R.c[i]?'checked':''}>${t}</label>`).join('')}<button class="btn" id="fin" ${R.done?'disabled':''}>${R.done?'Completed ✅':'Complete Day'}</button></div>`;
+ $('#main').innerHTML=h;
+ $('#bk').onclick=()=>{openDay=0;lr()};
+ $('#main').onchange=e=>{const c=e.target.dataset.c;if(c!=null){R.c[c]=e.target.checked?1:0;save()}};
+ const sq=$('#sq');if(sq)sq.onclick=()=>{qs={i:0,s:0,w:[]};day()};
+ $('#main').onclick=e=>{const m=e.target.closest('#msv');if(m){const v=$('#ms').value;if(v===''||+v<0||+v>TS[0])return toast('Enter a score from 0 to '+TS[0]);R.ms=+v;R.c=[1,1,1,1,1];R.done=1;save();xp(30,'· test logged');return day()}const b=e.target.closest('.opt');if(b&&qs){const q=L.q[qs.i],j=+b.dataset.o,ok=j===q[2];if(ok)qs.s++;
+   document.querySelectorAll('.opt').forEach((x,k)=>{x.disabled=true;if(k===q[2])x.classList.add('ok');else if(k===j)x.classList.add('no')});
+   b.insertAdjacentHTML('afterend',`<p>${ok?'✅ Correct!':'❌ Not quite.'} ${esc(q[3])} <button class="btn" id="nx">${qs.i<4?'Next':'Finish'}</button></p>`);
+   $('#nx').onclick=()=>{if(qs.i<4){qs.i++;day()}else{const o=S.quiz[d]||{best:0,n:0,hist:[]};o.n++;o.best=Math.max(o.best,qs.s);o.hist.push(qs.s);S.quiz[d]=o;R.c[3]=1;xp(qs.s*4,'· quiz '+qs.s+'/5');toast('Quiz score: '+qs.s+'/5');qs=null;day()}}}};
+ $('#fin').onclick=()=>{if(R.c.some(x=>!x))return toast('Tick every checklist item first.');R.done=1;xp(30,'· Day '+d+' cleared!');day()}}
+const AT=['Percentages','Simple Interest','Compound Interest','Profit and Loss','Ratio and Proportion','Averages','Ages','Time and Work','Pipes and Cisterns','Time, Speed and Distance','Trains','Boats and Streams','Mixtures and Alligation','Partnerships','Number System','HCF and LCM','Permutations','Combinations','Probability','Mensuration','Data Interpretation','Simplification','Surds and Indices','Calendar and Clock','Mixed Revision'];
+const AC={0:`A percentage is a number out of 100. To find x% of y, turn x% into x/100 and multiply by y.`,1:`Simple interest is the extra money paid on a deposit or loan, worked out only on the original amount (the principal) each year.`};
+const AF={0:['Percentage = (Part ÷ Whole) × 100','x% of y = x × y ÷ 100','Increase % = (Increase ÷ Original) × 100'],1:['SI = P × R × T ÷ 100','Amount = P + SI','R = SI × 100 ÷ (P × T)']};
+const AQ={0:[['What is 20% of 150?',['20','30','25','35'],1,'20/100 × 150 = 30.'],['A price rises from 200 to 250. Increase %?',['20','25','30','50'],1,'50 ÷ 200 × 100 = 25%.'],['40% of a number is 80. The number is?',['160','200','320','120'],1,'80 × 100 ÷ 40 = 200.'],['A student scores 45 out of 60. Percentage?',['65','70','75','80'],2,'45 ÷ 60 × 100 = 75%.'],['10000 rises 10%, then falls 10%. Final value?',['10000','9900','9800','10100'],1,'11000 × 0.9 = 9900.']],1:[['SI on 1000 at 5% for 2 years?',['50','100','150','200'],1,'1000×5×2/100 = 100.'],['P=2000, R=10%, T=3. Amount?',['2400','2600','2500','2300'],1,'SI = 600, amount = 2600.'],['SI 300 on 1500 at 5%. Time in years?',['3','4','5','2'],1,'300 = 75 × T, so T = 4.'],['P=800, T=2, SI=96. Rate %?',['5','6','8','12'],1,'96 = 16 × R, so R = 6.'],['A sum doubles in 10 years at SI. Rate %?',['5','10','15','20'],1,'SI = P, so R × 10/100 = 1, R = 10.']]};
+let apOpen=0,aq=null,apM=new Date(),apr={};
+const mkQ=(t,seed)=>{let s=seed;const r=n=>(s=(s*16807)%2147483647)%n,o=[];for(let i=0;i<20;i++){if(t===0){if(i<10){const x=5*(r(10)+1),y=20*(r(15)+1);o.push(['What is '+x+'% of '+y+'?',x*y/100])}else if(i<15){const b=[20,40,200,500][r(4)],p=5*(r(19)+1);o.push([(p*b/100)+' is what % of '+b+'?',p])}else{const a=[100,200,400,500][r(4)],p=5*(r(10)+1);o.push(['Price rises from '+a+' to '+(a+a*p/100)+'. Increase %?',p])}}else{const P=1000*(r(5)+1),R=[4,5,6,8,10][r(5)],T=r(5)+1;o.push(['SI on '+P+' at '+R+'% for '+T+' year(s)?',P*R*T/100])}}return o};
+const apN=d=>Math.round((new Date(d)-new Date(S.ap.start))/864e5)+1;
+const NT={'Number System':['A number system classifies numbers by their properties: natural (1, 2, 3), whole (0, 1, 2), integers (-2, 0, 5), even, odd, prime (exactly two factors) and composite (more than two factors).',['Divisible by 3: digit sum divisible by 3','Divisible by 4: last two digits divisible by 4','Divisible by 6: divisible by both 2 and 3','Divisible by 8: last three digits divisible by 8','Divisible by 9: digit sum divisible by 9','Divisible by 11: alternating digit sums differ by 0 or a multiple of 11'],'Is 729 divisible by 9? 7 + 2 + 9 = 18, which is divisible by 9. Yes.'],'Simplification':['Solve expressions with BODMAS: Brackets, Orders, Division, Multiplication, Addition, Subtraction. Division and multiplication have equal priority, and so do addition and subtraction. Work left to right.',['BODMAS order'],'25 + 5 × 4 − 10: multiply 5 × 4 = 20, add 25 + 20 = 45, subtract 45 − 10 = 35.'],'HCF and LCM':['HCF is the largest number that divides all the given numbers. LCM is the smallest common multiple.',['HCF × LCM = product of the two numbers'],'12 and 18: common factors 1, 2, 3, 6 so HCF = 6. Multiples of 12: 12, 24, 36. Of 18: 18, 36. LCM = 36.'],'Fractions and Decimals':['A fraction shows a part of a whole; a decimal uses a decimal point. Fractions can be proper (2/5), improper (7/4) or mixed (1 3/4).',['1/2 = 0.5 = 50%','1/4 = 0.25 = 25%','1/5 = 0.2 = 20%','1/8 = 0.125 = 12.5%','3/4 = 0.75 = 75%','a/b ÷ c/d = a/b × d/c'],'2/3 × 3/4 = 1/2. 2/3 ÷ 4/5 = 2/3 × 5/4 = 5/6.'],'Ratio and Proportion':['A ratio compares two quantities. A proportion says two ratios are equal.',['a:b = c:d means a × d = b × c','Share = individual ratio ÷ total ratio × total'],'Divide ₹600 in the ratio 2:4. Total parts = 6. Shares: 600 × 2/6 = ₹200 and 600 × 4/6 = ₹400.'],'Average':['Average is the sum of the values divided by how many values there are.',['Average = Sum ÷ Number of values','Sum = Average × Number'],'Average of 10, 20, 30, 40, 50: sum 150 ÷ 5 = 30.'],'Profit and Loss':['CP is cost price and SP is selling price. Compare them to find profit or loss.',['Profit = SP − CP','Loss = CP − SP','Profit % = Profit ÷ CP × 100','Loss % = Loss ÷ CP × 100'],'CP ₹500, SP ₹600: profit ₹100, profit % = 100/500 × 100 = 20%.'],'Discount':['Discount is the reduction given on the marked price (MP).',['Discount = MP − SP','Discount % = Discount ÷ MP × 100','SP = MP × (100 − D) ÷ 100'],'MP ₹1,000 with 20% discount: discount ₹200, SP ₹800.'],'Compound Interest':['Compound interest is worked out on the principal plus the interest already earned.',['A = P(1 + R/100)^T','CI = A − P','SI uses the original principal only; CI is usually higher'],'P ₹1,000, R 10%, T 2 years: year 1 interest ₹100 (₹1,100), year 2 interest ₹110 (₹1,210). CI = ₹210.'],'Problems on Ages':['Age problems compare present, past and future ages.',['After n years: present age + n','Before n years: present age − n','The age difference stays constant'],'Father 40, son 10. After 5 years they are 45 and 15, a ratio of 3:1.'],'Partnership':['Partners share profit in proportion to capital × time.',['Profit ratio = Capital × Time'],'A: 10,000 × 12 = 1,20,000. B: 20,000 × 6 = 1,20,000. Ratio 1:1, so a ₹10,000 profit is split ₹5,000 each.'],'Mixtures and Alligation':['Alligation finds the ratio in which two items of different price or strength are mixed.',['Cheaper : Dearer = (Dearer − Mean) : (Mean − Cheaper)'],'Rice at ₹20/kg and ₹40/kg mixed to get ₹30/kg: (40 − 30) : (30 − 20) = 1:1.'],'Time and Work':['If a job takes n days, one day of work is 1/n of the job.',['One day work = 1 ÷ Total days','Together time = (A × B) ÷ (A + B)'],'A takes 10 days, B takes 20. Together: 1/10 + 1/20 = 3/20 per day, so 20/3 = 6 2/3 days.'],'Pipes and Cisterns':['Inlet pipes fill (positive work). Outlet pipes empty (negative work).',['Net work = filling rate − emptying rate'],'A fills in 4 hours, B empties in 12 hours: 1/4 − 1/12 = 1/6 per hour, so 6 hours.'],'Time, Speed and Distance':['Speed, distance and time are linked by three formulas.',['Speed = Distance ÷ Time','Distance = Speed × Time','Time = Distance ÷ Speed','km/hr to m/s: × 5/18','m/s to km/hr: × 18/5'],'120 km in 2 hours: speed = 60 km/hr.'],'Problems on Trains':['Find the time a train takes to cross a pole, a platform or another train.',['Crossing a pole: Time = Train length ÷ Speed','Crossing a platform: Time = (Train + Platform length) ÷ Speed'],'A 100 m train at 20 m/s crosses a pole in 100/20 = 5 seconds.'],'Boats and Streams':['Downstream means with the current. Upstream means against it.',['Downstream = Boat + Stream','Upstream = Boat − Stream','Boat speed = (Downstream + Upstream) ÷ 2','Stream speed = (Downstream − Upstream) ÷ 2'],'Boat 10 km/hr, stream 2 km/hr: downstream 12 km/hr, upstream 8 km/hr.'],'Problems on Clocks':['Find the angle between the hour hand and the minute hand.',['Angle = |30H − 5.5M|','If the result exceeds 180°, subtract it from 360°'],'At 3:00: |30 × 3 − 5.5 × 0| = 90°.'],'Problems on Calendars':['Calendar questions find the day of the week for a date.',['Normal year: 365 days = 52 weeks + 1 day','Leap year: 366 days = 52 weeks + 2 days','Leap year: divisible by 400, or by 4 but not by 100'],'2024 is a leap year. 1900 is not. 2000 is.'],'Probability':['Probability measures how likely an event is.',['P(E) = Favourable outcomes ÷ Total outcomes','Impossible event = 0, certain event = 1'],'One coin toss: P(Head) = 1/2.'],'Permutation and Combination':['Permutation counts arrangements (order matters). Combination counts selections (order does not matter).',['nPr = n! ÷ (n − r)!','nCr = n! ÷ (r! (n − r)!)','5! = 120'],'3P2 = 3!/1! = 6. 3C2 = 3!/(2! 1!) = 3.'],'Algebra':['Algebra uses letters to stand for unknown numbers.',['(a + b)² = a² + 2ab + b²','(a − b)² = a² − 2ab + b²','a² − b² = (a − b)(a + b)'],'x + 5 = 12 gives x = 12 − 5 = 7.'],'Geometry and Mensuration':['Geometry studies shapes. Mensuration finds their area, perimeter and volume.',['Square: area a², perimeter 4a','Rectangle: area L × B, perimeter 2(L + B)','Triangle: area ½ × B × H','Circle: area πr², circumference 2πr','Cube a³, Cuboid L × B × H, Cylinder πr²h, Cone ⅓πr²h, Sphere 4/3 πr³'],'Rectangle 10 cm × 5 cm: area = 50 cm².'],'Problems on Numbers':['Use place values to write unknown numbers algebraically.',['Two-digit number = 10x + y','Reverse = 10y + x','Three-digit number = 100x + 10y + z'],'Tens digit 4, units digit 5: the number is 45 and its reverse is 54.'],'Data Interpretation':['Read tables, bar charts, pie charts and line graphs to find totals, averages, differences, percentages, highest and lowest values.',['Total = sum of values','Average = Total ÷ Count'],'Sales A 100, B 200, C 150: total 450, average 150.'],'Data Sufficiency':['Check whether the given statements are enough to answer the question.',['Test each statement alone, then both together'],'What is the age of A? S1: A is 5 years older than B. S2: B is 20. Neither alone is enough. Together A = 25.'],'Full Revision':['Revise every formula before your tests, and revise your mistakes every weekend.',['Percentage = Value ÷ Total × 100','SI = PRT ÷ 100','CI = P(1 + R/100)^T − P','Speed = Distance ÷ Time','Probability = Favourable ÷ Total','Clock angle = |30H − 5.5M|','nCr = n! ÷ (r! (n − r)!)'],'Study order: understand the concept, write the formula, solve examples without looking, practise 10 questions, then take a timed test.']};
+const APS=['Number System','Simplification','HCF and LCM','Fractions and Decimals','Percentage','Ratio and Proportion','Sunday Test 1','Average','Profit and Loss','Discount','Simple Interest','Compound Interest','Problems on Ages','Sunday Test 2','Partnership','Mixtures and Alligation','Time and Work','Pipes and Cisterns','Time, Speed and Distance','Problems on Trains','Sunday Test 3','Boats and Streams + Problems on Clocks','Problems on Calendars','Probability','Permutation and Combination','Algebra + Geometry and Mensuration','Problems on Numbers','Sunday Test 4','Data Interpretation','Data Sufficiency + Full Revision'];
+const apInfo=n=>{const dt=addD(S.ap.start,n-1),tp=APS[n-1],sun=tp.startsWith('Sunday'),ti=tp==='Percentage'?0:tp==='Simple Interest'?1:-1;return{dt,sun,ti,topic:tp}};
+function ap(){
+ const A=S.ap=S.ap||{start:null,ci:[],d:{},max:''};let t=today();
+ if(A.max&&t<A.max){toast('Device date moved back. Using last verified date '+A.max);t=A.max}else if(A.max!==t){A.max=t;save()}
+ if(!A.start){$('#main').innerHTML=`<div class='card'><h1>Aptitude Dashboard</h1><p>Start your 30-day aptitude challenge. Day 1 is today. Each later day unlocks on its own date, after you check in.</p><button class='btn' id='as'>Start Aptitude Challenge</button></div>`;$('#as').onclick=()=>{A.start=t;save();ap()};return}
+ if(apOpen)return apDay(t);
+ const tn=apN(t),inCh=tn>=1&&tn<=30,ci=A.ci.includes(t),TI=inCh?apInfo(tn):null;
+ let tc;if(!inCh)tc='<p>Your 30-day challenge has ended.</p>';else if(!ci)tc=`<p>Check in to unlock today's task.</p><button class='btn' id='aci'>⚔ Check In Today</button>`;else tc=`<p><b>Today's Aptitude Task Unlocked!</b></p><p>Day ${tn} · ${esc(TI.topic)}${A.d[tn]?.done?' · ✅ done':''}</p><button class='btn' id='ast'>Start Learning</button>`;
+ const y=apM.getFullYear(),m=apM.getMonth(),f=new Date(y,m,1).getDay(),nd=new Date(y,m+1,0).getDate();
+ let cells=['S','M','T','W','T','F','S'].map(d=>`<div class='h'>${d}</div>`).join('')+`<div class='h'></div>`.repeat(f),sch=0,dn=0;
+ for(let i=1;i<=nd;i++){const d=ds(new Date(y,m,i)),n=apN(d),inn=n>=1&&n<=30;let c='',ic='';
+  if(d>t){c='lock';ic='🔒'}else if(!inn){}else if(A.d[n]?.done){c='done';ic='✅'}else if(d===t){c=A.ci.includes(t)?'pend':'today';ic=c==='pend'?'🟡':'🔓'}else{c='miss';ic='🔴'}
+  if(inn&&d<=t){sch++;if(A.d[n]?.done)dn++}
+  const sun=inn&&apInfo(n).sun;cells+=`<div class='${c}' data-dt='${d}' title='${sun?'Sunday Test':''}' style='cursor:pointer${d===t?';outline:3px solid var(--blue)':''}'><b>${i}</b><span>${ic}</span>${sun?'<small>Test</small>':''}</div>`}
+ const done=Object.values(A.d).filter(x=>x.done).length;let miss=0;for(let n=1;n<=Math.min(30,tn-1);n++)if(!A.d[n]?.done)miss++;
+ const cs=l=>{let c=0,d=t;if(!l.includes(d))d=addD(d,-1);while(l.includes(d)){c++;d=addD(d,-1)}return c},lg=l=>{let b=0,c=0,p=null;for(const d of [...new Set(l)].sort()){c=p&&addD(p,1)===d?c+1:1;b=Math.max(b,c);p=d}return b};
+ const WK=['Basic Mathematics','Arithmetic Aptitude','Work, Speed and Distance','Advanced Aptitude','Final Preparation'],aSt=n=>{const dt=addD(A.start,n-1);return dt>t?'lock':A.d[n]?.done?'done':dt===t?(A.ci.includes(t)?'pend':'today'):'miss'};
+ let mp='<h2>Quantitative Aptitude · 30 Levels</h2>';
+ WK.forEach((w,i)=>{mp+=`<h3>Week ${i+1} · ${w}</h3><div class='grid'>`;for(let n=i*7+1;n<=Math.min(30,i*7+7);n++){const s=aSt(n);mp+=`<button class='node ${s==='lock'?'lock':s==='done'?'done':''}' data-an='${n}'><b>Day ${n}</b><br>${esc(APS[n-1])}<br><span class='pill'>${{lock:'🔒 Locked',done:'✅ Done',pend:'🟡 Open',today:'🔓 Check in first',miss:'🔴 Missed · open'}[s]}</span></button>`}mp+='</div>'});
+ $('#main').innerHTML=`<div class='card'><h1>Aptitude Dashboard</h1>${tc}</div>${mp}<div class='card'><div class='row' style='justify-content:space-between'><button class='btn alt' id='apm'>◀</button><h2 style='margin:0'>${apM.toLocaleString('default',{month:'long'})} ${y}</h2><button class='btn alt' id='anm'>▶</button></div><br><div class='cal'>${cells}</div><p class='mut' style='font-size:14px'>✅ completed · 🔓 today unlocked · 🟡 checked in, pending · 🔒 future locked · 🔴 missed, still open</p></div><div class='grid'><div class='card'><h3>Check-ins</h3>${A.ci.length}</div><div class='card'><h3>Completed days</h3>${done}</div><div class='card'><h3>Missed days</h3>${miss}</div><div class='card'><h3>Streak</h3>${cs(A.ci)} (best ${lg(A.ci)})</div><div class='card'><h3>This month</h3>${sch?Math.round(dn/sch*100):0}%</div></div>`;
+ const b=$('#aci');if(b)b.onclick=()=>{if(A.ci.includes(today())&&A.ci.includes(t))return;A.ci.push(t);save();xp(10);toast(`Today's Aptitude Task Unlocked!`);ap()};
+ const st=$('#ast');if(st)st.onclick=()=>{apOpen=tn;aq=null;ap()};
+ $('#apm').onclick=()=>{apM=new Date(y,m-1,1);ap()};$('#anm').onclick=()=>{apM=new Date(y,m+1,1);ap()};
+ $('#main').onclick=e=>{const nb=e.target.closest('[data-an]');if(nb){const n=+nb.dataset.an,s=aSt(n);if(s==='lock')return toast('🔒 This level unlocks on its scheduled date.');if(s==='today')return toast(`Check in above to unlock today's task.`);apOpen=n;aq=null;return ap()}const c=e.target.closest('[data-dt]');if(!c)return;const d=c.dataset.dt,n=apN(d);
+  if(d>t)return toast('🔒 Future tasks stay locked until their date.');if(n<1||n>30)return toast('No task scheduled for this date.');
+  if(d===t&&!A.ci.includes(t))return toast('Check in first to unlock today.');apOpen=n;aq=null;ap()}}
+function apDay(t){
+ const A=S.ap,n=apOpen,I=apInfo(n);
+ if(I.dt>t||(I.dt===t&&!A.ci.includes(t))){apOpen=0;return ap()}
+ const R=A.d[n]=A.d[n]||{c:[0,0,0,0,0]},pc=R.c.reduce((a,b)=>a+b,0)*20,ti=I.ti,sun=I.sun,arr=sun?[...AQ[0],...AQ[1]]:AQ[ti],has=!sun&&arr,P=has?mkQ(ti,ti*31+7):null,pr=apr[n];
+ const items=['Learned the concept','Reviewed the formulas','Practiced 20 questions','Completed the quiz','Revised incorrect answers'];
+ let h=`<button class='btn alt' id='bk'>◀ Calendar</button><div class='card'><h2>Day ${n} · ${esc(I.topic)}</h2><div class='bar'><i id='pb' style='width:${R.done?100:pc}%'></i></div><p id='pt'>${R.done?100:pc}% complete</p></div>`;
+ if(!sun&&!arr){const ns=I.topic.split(' + ').filter(x=>NT[x]);h+=ns.map(k=>{const x=NT[k];return `<div class='card'><h3>${esc(k)}</h3><p>${esc(x[0])}</p><h4>Formulas</h4><ul>${x[1].map(f=>'<li>'+esc(f)+'</li>').join('')}</ul><h4>Solved example</h4><p>${esc(x[2])}</p></div>`}).join('')+`<div class='card'><p class='mut'>Auto-checked practice and quiz are built only for Percentage and Simple Interest. Study this lesson, solve practice questions from your notes, then tick the checklist.</p></div>`}
+ if(has)h+=`<div class='card'><h3>Concept</h3><p>${AC[ti]}</p><h3>Important formulas</h3><ul>${AF[ti].map(x=>'<li>'+esc(x)+'</li>').join('')}</ul></div><div class='card'><h3>20 Practice Questions</h3>`+P.map((q,i)=>`<label>${i+1}. ${esc(q[0])}${pr?` <b>${pr.r[i]?'✅':'❌ answer: '+q[1]}</b>`:''}<input type='number' step='any' data-p='${i}' value='${pr?esc(pr.v[i]):''}'></label>`).join('')+`<button class='btn' id='apc'>Check answers</button>${pr?` <b>Score ${pr.s}/20</b>`:''}</div>`;
+ if(arr){let q;if(aq){const x=arr[aq.i];q=`<p><span class='pill'>Question ${aq.i+1}/${arr.length}</span></p><p>${esc(x[0])}</p>`+x[1].map((o,j)=>`<button class='opt' data-ao='${j}'>${esc(o)}</button>`).join('')}else q=(R.qz?`<p>Best: <b>${R.qz.best}/${arr.length}</b> · attempts ${R.qz.n}</p>`:'')+`<button class='btn' id='aqs'>${sun?'Start Sunday Test':'Start 5-question quiz'}</button>`;h+=`<div class='card'><h3>${sun?'Sunday Test (10 questions from covered topics)':'Daily Quiz'}</h3>${q}</div>`}
+ if(sun){const T=[[30,24],[30,24],[35,28],[40,32]][+I.topic.slice(-1)-1],sc=R.ms;h+=`<div class='card'><h3>Score tracker · target ${T[1]}/${T[0]}</h3><input type='number' id='ms' min='0' max='${T[0]}' placeholder='Score out of ${T[0]}' value='${sc??''}'><button class='btn' id='msv'>Save score</button>${sc!=null?`<p>${Math.round(sc/T[0]*100)}% · ${sc>=T[1]?'🎯 Target achieved':'📈 Needs improvement'}</p>`:''}</div>`}
+ if(!sun)h+=`<div class='card'><h3>Revision checklist</h3>${items.map((x,i)=>`<label class='ck'><input type='checkbox' data-c='${i}' ${R.c[i]?'checked':''}>${x}</label>`).join('')}<button class='btn' id='afin' ${R.done?'disabled':''}>${R.done?'Completed ✅':'Complete Day'}</button></div>`;
+ $('#main').innerHTML=h;
+ $('#main').onchange=e=>{const c=e.target.dataset.c;if(c!=null){R.c[c]=e.target.checked?1:0;save();const p=R.c.reduce((a,b)=>a+b,0)*20;$('#pb').style.width=(R.done?100:p)+'%';$('#pt').textContent=(R.done?100:p)+'% complete'}};
+ $('#main').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='msv'){const T=[[30,24],[30,24],[35,28],[40,32]][+I.topic.slice(-1)-1],v=$('#ms').value;if(v===''||+v<0||+v>T[0])return toast('Enter a score from 0 to '+T[0]);R.ms=+v;R.done=1;save();xp(20,'· test logged');return apDay(t)}
+  if(b.id==='bk'){apOpen=0;aq=null;return ap()}
+  if(b.id==='aqs'){aq={i:0,s:0};return apDay(t)}
+  if(b.id==='apc'){const v=[...document.querySelectorAll('[data-p]')].map(x=>x.value),r=v.map((x,i)=>x!==''&&+x===P[i][1]),s=r.filter(Boolean).length;apr[n]={v,r,s};if(v.every(x=>x!=='')){R.c[2]=1;if(!R.pr){R.pr=1;xp(s,'· practice')}}save();return apDay(t)}
+  if(b.id==='afin'){if(R.c.some(x=>!x))return toast('Tick every checklist item first.');R.done=1;xp(30,'· Day '+n+' cleared!');return apDay(t)}
+  if(b.dataset.ao!=null&&aq){const x=arr[aq.i],j=+b.dataset.ao,ok=j===x[2];if(ok)aq.s++;
+   document.querySelectorAll('.opt').forEach((o,k)=>{o.disabled=true;if(k===x[2])o.classList.add('ok');else if(k===j)o.classList.add('no')});
+   b.insertAdjacentHTML('afterend',`<p>${ok?'✅ Correct!':'❌ Not quite.'} ${esc(x[3])} <button class='btn' id='anx'>${aq.i<arr.length-1?'Next':'Finish'}</button></p>`);
+   $('#anx').onclick=()=>{if(aq.i<arr.length-1){aq.i++;return apDay(t)}const o=R.qz||{best:0,n:0};o.n++;o.best=Math.max(o.best,aq.s);R.qz=o;const sc=aq.s;if(sun)R.done=1;else R.c[3]=1;xp(sc*(sun?5:4),'· score '+sc+'/'+arr.length);aq=null;apDay(t)}}}}
+const SK=['Meaning of Active Listening','Hearing vs Active Listening','Understanding Key Points','Listening Without Interrupting','Asking Relevant Questions','Understanding Instructions','Listening to Different Opinions','Listening and Note-Taking','Understanding and Responding to Feedback','Active Listening Test','Introduction to Problem Solving','Identifying the Problem','Finding the Root Cause','Logical Thinking','Critical Thinking','Decision Making','Time-Based Problem Solving','Real-Life Problem Solving','Workplace Problem Solving','Problem-Solving Test','Self-Introduction','Communication Skills','Confidence Building & Body Language','Resume Explanation','Project Explanation','Strengths and Weaknesses','Professional Communication & Email Writing','Group Discussion','HR Interview Questions & Mock Interview','Final Placement Assessment'];let sOpen=0;
+function ss(){
+ S.ss=S.ss||{};
+ if(!S.start){$('#main').innerHTML=`<div class='card'><h2>Soft Skills Quest</h2><p>Start the 30-day challenge on Home first.</p></div>`;return}
+ if(sOpen)return ssDay();
+ const t=today(),stt=d=>{const dt=addD(S.start,d-1);return dt>t?'lock':S.ss[d]?.done?'done':dt===t?(S.checkins.includes(t)?'pend':'today'):'miss'};
+ const M=[['Module 1 · Active Listening','Improve listening, understanding, response and feedback skills.'],['Module 2 · Problem Solving','Develop logical thinking, decision-making and practical problem solving.'],['Module 3 · Soft Skills & Interview Preparation','Prepare for professional communication, group discussions and interviews.']];
+ const dn=Object.values(S.ss).filter(x=>x.done).length;
+ let h=`<h2>Soft Skills & Communication · 30 Levels</h2><div class='bar'><i style='width:${Math.round(dn/30*100)}%'></i></div><p>${dn}/30 days complete</p>`;
+ M.forEach((m,i)=>{const md=Object.keys(S.ss).filter(k=>k>i*10&&k<=i*10+10&&S.ss[k].done).length;h+=`<h3>${m[0]} · ${md}/10</h3><p class='mut'>${m[1]}</p><div class='grid'>`;for(let d=i*10+1;d<=i*10+10;d++){const s=stt(d);h+=`<button class='node ${s==='lock'?'lock':s==='done'?'done':''}' data-d='${d}'><b>Day ${d}</b><br>${esc(SK[d-1])}<br><span class='pill'>${{lock:'🔒 Locked',done:'✅ Done',pend:'🟡 Open',today:'🔓 Check in first',miss:'🔴 Missed · open'}[s]}</span></button>`}h+='</div>'});
+ $('#main').innerHTML=h;
+ $('#main').onclick=e=>{const b=e.target.closest('.node');if(!b)return;const d=+b.dataset.d,s=stt(d);if(s==='lock')return toast('🔒 This level unlocks on its scheduled date.');if(s==='today')return toast(`Check in on Home to unlock today's task.`);sOpen=d;ss()}}
+function ssDay(){
+ const d=sOpen,R=S.ss[d]=S.ss[d]||{c:[0,0,0,0,0,0],n:'',r:''},it=['Learned the topic','Understood the examples','Completed the practical activity','Answered the practice questions','Completed the daily quiz','Reviewed mistakes and feedback'],test=[10,20,30].includes(d);
+ let h=`<button class='btn alt' id='bk'>◀ Map</button><div class='card'><h2>Day ${d} · ${esc(SK[d-1])}</h2><p class='mut'>Lesson content for this day is not written yet in this build. Use the notes, reflection and checklist below to study.</p></div><div class='card'><h3>Practical activity notes</h3><textarea id='sn' rows='4'>${esc(R.n)}</textarea><h3>Daily reflection</h3><textarea id='sr' rows='3' placeholder='What did I learn today?'>${esc(R.r)}</textarea></div>`;
+ if(test)h+=`<div class='card'><h3>Assessment score</h3><p class='mut'>Take this assessment and log your self-scored result.</p><input type='number' id='sc' min='0' max='100' placeholder='Score in %' value='${R.sc??''}'>${R.sc!=null?`<p>${R.sc>=70?'🎯 Strong result':'📈 Needs improvement'}</p>`:''}</div>`;
+ h+=`<div class='card'><h3>Completion checklist</h3>${it.map((x,i)=>`<label class='ck'><input type='checkbox' data-c='${i}' ${R.c[i]?'checked':''}>${x}</label>`).join('')}<button class='btn' id='fin' ${R.done?'disabled':''}>${R.done?'Completed ✅':'Complete Day'}</button></div>`;
+ $('#main').innerHTML=h;
+ $('#sn').oninput=e=>{R.n=e.target.value;save()};$('#sr').oninput=e=>{R.r=e.target.value;save()};
+ const sc=$('#sc');if(sc)sc.onchange=e=>{const v=+e.target.value;if(e.target.value===''||v<0||v>100)return toast('Enter a score from 0 to 100');R.sc=v;save();ssDay()};
+ $('#main').onchange=e=>{const c=e.target.dataset.c;if(c!=null){R.c[c]=e.target.checked?1:0;save()}};
+ $('#main').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='bk'){sOpen=0;return ss()}if(b.id==='fin'){if(R.c.some(x=>!x))return toast('Tick every checklist item first.');if(test&&R.sc==null)return toast('Log your assessment score first.');R.done=1;xp(30,'· Day '+d+' cleared!');ssDay()}}}
+const PL=[['Cisco Networking Academy','https://www.netacad.com/','Networking, cybersecurity, programming'],['freeCodeCamp','https://www.freecodecamp.org/learn/','Web development and programming'],['IBM SkillsBuild','https://skillsbuild.org/','AI, data, cloud, career skills'],['Microsoft Learn','https://learn.microsoft.com/training/','Cloud, Azure, developer skills'],['AWS Skill Builder','https://skillbuilder.aws/','Cloud computing'],['Google Skillshop','https://skillshop.withgoogle.com/','Digital marketing and analytics'],['Google Cloud Skills Boost','https://www.cloudskillsboost.google/','Cloud computing'],['Infosys Springboard','https://infyspringboard.onwingspan.com/','Programming, soft skills'],['NPTEL','https://nptel.ac.in/','Engineering and CS courses'],['Saylor Academy','https://www.saylor.org/','CS and business courses'],['HP LIFE','https://www.life-global.org/','Business and IT skills'],['Great Learning Academy','https://www.mygreatlearning.com/academy','Data, AI, programming'],['Simplilearn SkillUp','https://www.simplilearn.com/skillup-free-online-courses','IT, data, marketing'],['Alison','https://alison.com/','Wide range of topics'],['Kaggle Learn','https://www.kaggle.com/learn','Data science and ML']];
+const PR=['Choose a free course','Enroll on the official platform','Complete all lessons','Pass the final assessment','Download your certificate','Update LinkedIn and resume'];
+let cq='',cf=null,PF=null;
+function cert(){
+ const done=S.certs.filter(c=>c.steps?.[4]).length,pct=S.certs.length?Math.round(done/S.certs.length*100):0;
+ const ls=PL.filter(p=>(p[0]+p[2]).toLowerCase().includes(cq.toLowerCase()));
+ let h=`<div class="card"><h2>Free Learning Platforms</h2><p class="mut">Free learning and free certificates differ by platform. Check each official site for current terms.</p><input id="cs" placeholder="Search platforms…" value="${esc(cq)}"><div class="grid">`+ls.map(p=>`<div class="card" style="box-shadow:none;margin:0"><b>${esc(p[0])}</b><br><span class="mut">${esc(p[2])}</span><div class="row" style="margin-top:8px"><a class="btn" href="${p[1]}" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Start Learning</a><button class="btn alt" data-add="${esc(p[0])}">Add to Tracker</button><button class="btn alt" data-bm="${esc(p[0])}">${S.marks.includes(p[0])?'★':'☆'}</button></div></div>`).join('')+'</div></div>';
+ h+=`<div class="card" id="frm"><h2>${cf?.id?'Edit':'Add'} Certification</h2><div class="grid"><div><label>Course name*<input id="f1" value="${esc(cf?.name)}"></label></div><div><label>Platform*<input id="f2" value="${esc(cf?.plat)}"></label></div><div><label>Start date<input type="date" id="f3" value="${esc(cf?.start)}"></label></div><div><label>Completion date<input type="date" id="f4" value="${esc(cf?.end)}"></label></div><div><label>Certificate link<input id="f5" placeholder="https://…" value="${esc(cf?.link)}"></label></div><div><label>Certificate PDF (max 1.5 MB)<input type="file" id="f8" accept="application/pdf,.pdf"></label><small id="fn" class="mut">${PF?'Attached: '+esc(PF.name):cf?.file?'Current: '+esc(cf.file.name):'Upload a PDF or paste a link above.'}</small></div><div><label>Skills learned<input id="f6" placeholder="HTML, CSS" value="${esc(cf?.skills)}"></label></div><div><label>Free course link<input id="f9" placeholder="https://…" value="${esc(cf?.curl)}"></label></div></div><button class="btn" id="sv">${cf?.id?'Save changes':'Add Certification'}</button> <span id="er" style="color:var(--red)"></span></div>`;
+ h+=`<div class="card"><h2>My Certifications · ${pct}% complete</h2><div class="bar"><i style="width:${pct}%"></i></div><br>`+(S.certs.length?S.certs.map(c=>`<div class="card" style="box-shadow:none"><b>${esc(c.name)}</b> <span class="pill">${(c.steps||[]).filter(Boolean).length}/6 steps</span><div class="bar"><i style="width:${Math.round((c.steps||[]).filter(Boolean).length/6*100)}%"></i></div><br><span class="mut">${esc(c.plat)} ${c.skills?'· '+esc(c.skills):''}</span>${PR.map((p,i)=>`<label class="ck"><input type="checkbox" data-st="${c.id}:${i}" ${c.steps?.[i]?'checked':''}>${p}</label>`).join('')}<div class="row">${c.curl?`<a class="btn" href="${esc(c.curl)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Start Learning</a>`:''}<button class="btn alt" data-ed="${c.id}">Edit</button><button class="btn bad" data-dl="${c.id}">Delete</button>${c.link?`<a class="btn alt" href="${esc(c.link)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Open link</a>`:''}${c.file?`<button class="btn alt" data-vf="${c.id}">View PDF</button>`:''}${c.steps?.[4]?`<button class="btn" data-li="${c.id}">Prepare LinkedIn Update</button>`:''}</div></div>`).join(''):'<p class="mut">No certifications yet. Add your first one above.</p>')+`<div class="row"><button class="btn alt" id="csv">Export CSV</button><button class="btn alt" onclick="print()">Print</button></div></div><div id="lip"></div>`;
+ $('#main').innerHTML=h;
+ $('#cs').oninput=e=>{cq=e.target.value;const p=e.target.selectionStart;cert();const i=$('#cs');i.focus();i.setSelectionRange(p,p)};
+ $('#f8').onchange=e=>{const f=e.target.files[0];if(!f)return;if(!/\.pdf$/i.test(f.name))return $('#er').textContent='Only PDF files are allowed.';if(f.size>1500000)return $('#er').textContent='PDF must be under 1.5 MB.';const r=new FileReader();r.onload=()=>{PF={name:f.name,data:r.result};$('#er').textContent='';$('#fn').textContent='Attached: '+f.name};r.readAsDataURL(f)};
+ $('#sv').onclick=()=>{const g=i=>$('#f'+i).value.trim(),er=$('#er');
+  if(!g(1)||!g(2))return er.textContent='Course name and platform are required.';
+  if(g(5)&&!/^https?:\/\/\S+\.\S+/.test(g(5)))return er.textContent='Certificate link must start with http:// or https://';
+  if(g(9)&&!/^https?:\/\/\S+\.\S+/.test(g(9)))return er.textContent='Course link must start with http:// or https://';
+  const id=cf?.id,dup=S.certs.some(c=>c.id!==id&&c.name.toLowerCase()===g(1).toLowerCase()&&c.plat.toLowerCase()===g(2).toLowerCase());
+  if(dup)return er.textContent='This certification is already in your tracker.';
+  const rec={id:id||Date.now()+'',name:g(1),plat:g(2),start:g(3),end:g(4),link:g(5),skills:g(6),curl:g(9),file:PF||cf?.file||null,steps:cf?.steps||[0,0,0,0,0,0]},old=S.certs.find(c=>c.id===id);
+  if(old)Object.assign(old,rec);else S.certs.push(rec);save();cf=null;PF=null;
+  xp(5);cert()};
+ $('#main').onchange=e=>{const v=e.target.dataset.st;if(!v)return;const [id,i]=v.split(':'),c=S.certs.find(x=>x.id===id);c.steps=c.steps||[0,0,0,0,0,0];const was=c.steps[4];c.steps[i]=e.target.checked?1:0;save();if(+i===4&&!was&&c.steps[4]){xp(50,'· Certificate earned!');cert();toast('🎉 Congratulations! You have completed your course. Now update your LinkedIn profile and showcase your new skills.')}else cert()};
+ $('#main').onclick=e=>{const b=e.target.closest('button');if(!b)return;const D=b.dataset;
+  if(D.add){PF=null;cf={plat:D.add,name:'',curl:(PL.find(p=>p[0]===D.add)||[])[1]||''};cert();$('#frm').scrollIntoView({behavior:'smooth'});$('#f1').focus()}
+  if(D.bm){S.marks=S.marks.includes(D.bm)?S.marks.filter(x=>x!==D.bm):[...S.marks,D.bm];save();cert()}
+  if(D.vf){const f=S.certs.find(c=>c.id===D.vf).file,u=Uint8Array.from(atob(f.data.split(',')[1]),ch=>ch.charCodeAt(0)),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([u],{type:'application/pdf'}));a.target='_blank';a.rel='noopener';a.download=f.name;a.click()}
+  if(D.ed){PF=null;cf={...S.certs.find(c=>c.id===D.ed)};cert();$('#frm').scrollIntoView({behavior:'smooth'})}
+  if(D.dl)ask('Delete this certification?',()=>{S.certs=S.certs.filter(c=>c.id!==D.dl);save();cert()});
+  if(D.li)li(D.li);
+  if(b.id==='csv'){const rows=[['Name','Platform','Start','Completion','Certificate link','Free course link','Skills','Steps done'],...S.certs.map(c=>[c.name,c.plat,c.start,c.end,c.link,c.curl,c.skills,(c.steps||[]).filter(Boolean).length+'/6'])];
+   const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='certifications.csv';a.click()}}}
+const LIC=['Download the certificate from the platform','Check the certificate name is correct','Save it as PDF or image','Attach it to the LinkedIn post','Add it to Licenses & Certifications','Add the issuing organization and issue date','Add credential ID and URL if provided','Add relevant skills to the Skills section','Update resume with the new certification'];
+function li(id){const c=S.certs.find(x=>x.id===id),st=S.li[id]=S.li[id]||{c:[],done:0},sk=c.skills||'the skills covered in the course';
+ const txt=`I am happy to share that I have successfully completed ${c.name} from ${c.plat}.\n\nDuring this learning journey, I gained knowledge and practical skills in ${sk}.\n\nThis certification has helped me improve my understanding of the subject, and I look forward to applying these skills in future projects and professional opportunities.\n\n#Learning #Certification #ProfessionalDevelopment #CareerGrowth`;
+ $('#lip').innerHTML=`<div class="card"><h2>LinkedIn Update · ${esc(c.name)}</h2><textarea id="lt" rows="9">${esc(txt)}</textarea><div class="row"><button class="btn" id="cp">Copy announcement</button></div><h3>Checklist</h3>${LIC.map((t,i)=>`<label class="ck"><input type="checkbox" data-k="${i}" ${st.c[i]?'checked':''}>${t}</label>`).join('')}<button class="btn" id="md">Mark LinkedIn Update as Completed</button> <b id="ok">${st.done?'Great work! Your certification and LinkedIn update checklist are complete.':''}</b></div>`;
+ $('#lip').scrollIntoView({behavior:'smooth'});
+ $('#cp').onclick=()=>navigator.clipboard?.writeText($('#lt').value).then(()=>toast('Copied!'),()=>toast('Select the text and copy it manually.'));
+ $('#lip').onchange=e=>{if(e.target.dataset.k!=null){st.c[e.target.dataset.k]=e.target.checked?1:0;save()}};
+ $('#md').onclick=()=>{if(LIC.some((_,i)=>!st.c[i]))return toast('Tick every checklist item first.');if(!st.done){st.done=1;save();xp(25,'· LinkedIn updated!')}$('#ok').textContent='Great work! Your certification and LinkedIn update checklist are complete.'}}
+const PS=[['Identify a Real-World Problem','Planning'],['Select a Project Idea','Planning'],['Define Project Objectives','Planning'],['Collect Project Requirements','Planning'],['Create Project Architecture','Planning'],['Design UI/UX in Figma or Canva','UI/UX'],['Set Up VS Code and Folders','Development'],['Build the Frontend','Development'],['Build the Backend','Development'],['Create and Connect the Database','Development'],['Integrate APIs','Development'],['Implement CRUD Operations','Development'],['Add Authentication and Validation','Development'],['Test All Features','Testing'],['Debug Errors Independently','Testing'],['Upload Code to GitHub','GitHub & Deploy'],['Deploy the Project Online','GitHub & Deploy'],['Prepare Documentation','Docs'],['Create a Presentation','Docs'],['Prepare to Explain in Interviews','Docs']];
+const PG=[['Learn how to identify a real-life problem that can be solved using technology.','Understand what a real-world problem means|Observe problems in college, home, offices and society|List at least five problems|Identify who experiences each problem and why it occurs|Research how people solve it today|Note the disadvantages of the existing solution|Decide how software can solve it|Select one useful, achievable problem|Write a clear problem statement','Problem identification, user research, observation, problem statement writing, basic feasibility analysis','Identify five problems and choose one.','Write a problem statement in 3-5 sentences.','Problem statement document','Problem: Students forget assignment submission dates.\nTarget users: College students\nExisting solution: Manual notes and reminders\nProposed solution: Student Assignment Tracker'],
+['Convert your selected problem into a software project idea.','Understand web, mobile and desktop applications|Brainstorm at least three project ideas|Identify the main purpose and required features of each|Research similar applications|Compare ideas by usefulness, difficulty and available time|Check you have the required skills|Select a project for your level and give it a meaningful name','Project selection, feasibility, scope, basic competitor research, software application types','Compare three project ideas in a table.','Select one project and explain why you chose it.','Project title and project idea','Beginner ideas: Student Management System, Online Quiz Application, Expense Tracker, Library Management System, To-Do List Application, College Event Management System, Job Application Tracker'],
+['Understand what your application should achieve.','Understand what project objectives mean|Identify the main purpose and target users|Write one main objective|Divide it into smaller objectives|Identify the features needed for each objective|Decide expected results|Define scope and limitations|Review whether the objectives are achievable','Main and specific objectives, project scope, expected outcomes, limitations, SMART objectives','Write one main objective and five specific objectives.','Prepare an objectives document.','Project objectives','Main objective: Help students manage assignments and submission deadlines.\nSpecific: add assignments, show upcoming deadlines, track completed work, edit details, organize academic tasks.'],
+['Understand what features and resources your project needs.','Understand what software requirements mean|Identify all users and what each needs|List the actions users should perform|Identify what information must be stored|List functional and non-functional requirements|Identify security requirements|Identify hardware and software requirements|Organize everything into an SRS document','Requirement gathering, user, functional and non-functional requirements, Software Requirement Specification (SRS). Functional = what the system does (user login). Non-functional = how it performs (fast loading). Security = how information is protected (password hashing).','Write 10 functional and 5 non-functional requirements.','Prepare an SRS document.','Software Requirement Specification',''],
+['Understand how the frontend, backend and database work together.','Understand what system architecture means|Learn the client-server model|Understand the roles of frontend, backend and database|Learn how APIs connect components|Identify the modules in your project|Decide the technology for each component|Draw a system architecture diagram|Create a basic user-flow diagram','Client-server and three-tier architecture, system flowcharts, Data Flow Diagrams, database architecture, API communication','Draw a frontend-backend-database diagram.','Prepare a system architecture diagram and user flow.','Architecture document','USER\n  |\n  v\nFRONTEND\n  |\n  v\nBACKEND\n  |\n  v\nAPI\n  |\n  v\nDATABASE'],
+['Learn how to design application screens before writing code.','Understand the difference between UI and UX|Create a Figma account and a new design file|Understand frames and layers; choose desktop and mobile sizes|Learn colours and typography|Create a low-fidelity wireframe|Design login, registration, homepage and dashboard|Create forms, cards, buttons and navigation|Design the remaining pages and make them responsive|Connect screens with prototype interactions|Review and improve the design','UI and UX fundamentals, wireframing, mockups, prototyping, colour theory, typography, layout and spacing, responsive design','Design a login page and dashboard.','Create at least five connected application screens.','Figma prototype',''],
+['Prepare the development environment.','Understand what a code editor is and what VS Code does|Download and install VS Code|Install the required programming language|Learn to open folders and use the integrated terminal|Create and save files|Install useful extensions|Create the main project folder|Create frontend, backend, database and assets folders|Run a simple HTML program','VS Code interface, terminal commands, file and folder management, extensions, basic project structure. Extensions: Live Server, Prettier, ESLint, Python (if using Python), GitLens.','Create a project folder and run a webpage.','Set up your complete project environment.','Working development setup','my-project/\n  frontend/\n    index.html\n    style.css\n    script.js\n  backend/\n  database/\n  assets/\n  README.md'],
+['Build the visible and interactive part of your application.','Learn HTML structure, headings, links, images, forms and buttons|Learn CSS selectors, margins, padding and borders|Learn Flexbox, Grid and media queries|Learn JavaScript variables, functions, DOM and events|Connect JavaScript with HTML|Build the homepage, login and registration pages|Build the dashboard and other pages|Add interactivity and test every button|Compare your site with your Figma design','HTML5, CSS3, JavaScript, DOM, responsive web design, form handling, browser Developer Tools','Build a responsive student dashboard.','Develop all frontend pages.','Functional frontend',''],
+['Learn how the application processes requests and manages business logic.','Understand backend development and how it differs from frontend|Select a backend language and learn its basics|Understand servers and requests|Install the framework and create the backend project|Create the main server file and start the server|Create routes and handle incoming requests|Write business logic and send responses to the frontend|Add error handling and test the server','Backend fundamentals, servers, routing, HTTP requests, request and response, business logic, middleware, error handling. Paths: Python (Flask or Django), Node.js with Express, Java (Spring Boot), PHP (Laravel).','Create a backend route that displays a welcome message.','Run a backend server with multiple routes.','Working backend',''],
+['Learn how to store, organize and retrieve application data.','Understand databases, DBMS and RDBMS|Learn SQL basics, tables, rows and columns|Learn primary keys, foreign keys and relationships|Select, install or create a database|Create tables or collections with fields and data types|Insert sample records|Learn SELECT, INSERT, UPDATE and DELETE|Connect the database to the backend and retrieve data|Test the connection','Database fundamentals, SQL, DBMS, tables and relationships, ER diagrams, connectivity. Choose one: MySQL, PostgreSQL, SQLite or MongoDB.','Create a student table and insert five records.','Connect your project database to the backend.','Working database connection',''],
+['Understand how application components communicate through APIs.','Understand what an API is and why applications use them|Learn REST architecture, HTTP methods and endpoints|Learn JSON and HTTP status codes|Create an API endpoint in your backend|Send requests with Fetch API or an HTTP client|Test endpoints using Postman|Connect the frontend to the backend API|Handle successful responses and API errors|Test the complete API flow','REST API, JSON, HTTP methods, endpoints, Fetch API, Postman, status codes','Create an API that retrieves student details.','Connect at least two API endpoints to your frontend.','Working API integration','GET - retrieve information\nPOST - create information\nPUT - replace or update information\nPATCH - partially update information\nDELETE - remove information'],
+['Learn how to manage application records.','Understand what CRUD means|Create a form to add data and send it to the backend|Save the data in the database|Retrieve saved records and display them|Create an edit button and update records|Create a delete button and remove records|Test all four operations','CRUD concepts, database queries, API methods, form submission, data handling','Build a student management CRUD application.','Implement all four CRUD operations in your project.','Complete CRUD module','Create - Add assignment\nRead - View assignments\nUpdate - Edit assignment\nDelete - Remove assignment'],
+['Learn how to protect user accounts and validate input data.','Understand authentication and authorization and how they differ|Design registration and login forms|Learn password hashing and store user details securely|Verify credentials during login|Learn sessions or token-based authentication|Restrict access to protected pages and implement logout|Add frontend and backend validation|Validate email and password formats|Test incorrect login attempts','Authentication, authorization, password hashing, sessions, JWT, form validation, input sanitization, access control. Never store plain-text passwords.','Build a registration and login system.','Implement secure login and protected dashboard access.','Authentication and validation module',''],
+['Ensure all application features work correctly.','Understand software testing and why it matters|Identify all project features|Write test cases with expected results|Test valid inputs, invalid inputs and empty forms|Test login, registration and CRUD|Test API communication and database operations|Test mobile responsiveness|Record actual results and compare with expected results|Report any failures','Unit, integration, functional, UI, performance, security and regression testing','Prepare 15 test cases for your application.','Test every major feature and document the results.','Test report',''],
+['Learn to identify and fix coding errors independently.','Understand syntax, runtime and logical errors|Read error messages carefully|Open browser Developer Tools and use the console|Check terminal errors and use VS Code breakpoints|Identify the affected code and find the root cause|Search official documentation|Apply a solution and run the program again|Verify the fix and record the error and solution','Debugging techniques, browser console, VS Code debugger, breakpoints, stack traces, error handling','Introduce five errors into a sample project and fix them.','Prepare a list of errors and their solutions.','Debugging record',''],
+['Learn how to manage source code using Git and GitHub.','Understand version control and the difference between Git and GitHub|Create a GitHub account and install Git|Create a repository and run git init in your project|Add files and create commits|Connect the local project to GitHub and push|Learn to pull changes and understand branches|Create a README with screenshots and setup instructions|Add a .gitignore to protect passwords and API keys','Git, GitHub, repository, commit, push and pull, branching, README, .gitignore','Create a repository and upload a sample project.','Upload your complete project to GitHub.','GitHub repository link','git init\ngit status\ngit add .\ngit commit -m "Initial commit"\ngit branch -M main\ngit remote add origin YOUR_REPOSITORY_URL\ngit push -u origin main\ngit pull'],
+['Learn how to make your project accessible online.','Understand deployment, hosting and domain names|Learn the difference between localhost and a live site|Prepare your project for production|Select a hosting platform and connect your GitHub repository|Configure environment variables|Deploy the frontend and the backend if required|Set up the production database and API URLs|Test the live application and check deployment logs|Fix errors and share your live URL','Hosting, deployment, domain names, environment variables, production database, deployment logs. Hosting features and free tiers can change, so check each platform.','Deploy a simple HTML website.','Deploy your complete project.','Live project URL','Frontend: Vercel, Netlify\nStatic websites: GitHub Pages\nBackend: Render\nDatabase: MongoDB Atlas, Supabase'],
+['Learn how to document your complete software project.','Understand the purpose of documentation|Learn technical vs user documentation|Write the title page, introduction and problem statement|Add objectives, existing system and proposed system|List hardware and software requirements and technologies|Add system architecture and database design|Explain each module and add screenshots|Include testing results, conclusion, future enhancements and references|Proofread and export as PDF','SRS, technical documentation, user documentation, report writing, architecture documentation, screenshot documentation','Prepare an introduction and module description for your project.','Create a complete project report.','Project documentation PDF',''],
+['Learn how to present your project professionally.','Understand the purpose of a project presentation|Choose PowerPoint or Canva and a professional theme|Create the title, problem statement and objectives slides|Present the proposed solution and technologies used|Add the architecture diagram and UI screenshots|Explain features, database design and testing|Demonstrate the live project|Add future enhancements and conclusion|Practise and prepare for audience questions','PowerPoint, Canva, slide design, public speaking, technical explanation, presentation practice','Present your project to a friend in five minutes.','Prepare a 10-14 slide presentation.','Project PPT','Slides: 1 Title, 2 Introduction, 3 Problem statement, 4 Objectives, 5 Proposed solution, 6 Technologies, 7 Architecture, 8 UI design, 9 Main features, 10 Database, 11 Testing, 12 Live demo, 13 Future enhancements, 14 Conclusion'],
+['Learn to explain your project and answer technical interview questions confidently.','Prepare a one-minute project introduction|Explain the problem, why you chose the project and the objectives|Describe the main features and technologies|Explain the architecture and how frontend and backend communicate|Explain CRUD, API integration and authentication|Describe testing, debugging, your GitHub workflow and deployment|Discuss challenges, solutions and future improvements|Practise a live demonstration|Attend a mock technical interview','Likely questions: Tell me about your project. Why this project? Main objective? Technologies and why this database? CRUD? What is an API? How does authentication work? Challenges? How did you deploy? What would you improve?','Record yourself explaining your project and answer 10 technical questions.','Complete one mock project interview.','Interview-ready project explanation and demonstration','My project is called [Project Name]. It is developed to solve [Problem]. The main objective is to [Objective]. I used [Frontend] for the frontend, [Backend] for the backend and [Database] for storing information. The main features are [Feature 1], [Feature 2] and [Feature 3]. During development, I faced [Challenge] and solved it using [Solution]. Through this project, I learned [Skills].']];
+let pOpen=null;
+function ask(m,y){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20;padding:16px';o.innerHTML=`<div class='card' style='max-width:340px;margin:0'><p>${esc(m)}</p><div class='row'><button class='btn bad' id='ay'>Yes</button><button class='btn alt' id='an'>Cancel</button></div></div>`;document.body.append(o);o.querySelector('#an').onclick=()=>o.remove();o.querySelector('#ay').onclick=()=>{o.remove();y()}}
+let plE=null;
+function projLinks(){
+ S.pl=S.pl||[];let c=$('#pl');if(!c){c=document.createElement('div');c.id='pl';$('#main').children[0].after(c)}
+ const ed=S.pl.find(x=>x.id===plE),ok=u=>/^https?:\/\/\S+\.\S+/.test(u);
+ c.innerHTML=`<div class='card'><h2>My Projects · ${S.pl.filter(x=>x.live).length} live</h2><p class='mut'>A project counts as completed once it has a live link.</p><label>Project name*<input id='pn1' value='${esc(ed?.name)}'></label><label>Live project URL<input id='pl1' placeholder='https://…' value='${esc(ed?.live)}'></label><label>GitHub URL<input id='pg1' placeholder='https://github.com/…' value='${esc(ed?.gh)}'></label><button class='btn' id='psv'>${ed?'Save changes':'Add project'}</button> <span id='pe1' style='color:var(--red)'></span>`+S.pl.map(x=>`<div class='card' style='box-shadow:none;margin:10px 0 0'><b>${esc(x.name)}</b> <span class='pill'>${x.live?'✅ Completed · live':'🛠 In progress'}</span><div class='row' style='margin-top:6px'>${x.live?`<a class='btn' href='${esc(x.live)}' target='_blank' rel='noopener noreferrer' style='text-decoration:none'>Open live</a><button class='btn alt' data-cp='${x.id}'>Copy link</button>`:''}${x.gh?`<a class='btn alt' href='${esc(x.gh)}' target='_blank' rel='noopener noreferrer' style='text-decoration:none'>GitHub</a>`:''}<button class='btn alt' data-pe='${x.id}'>Edit</button><button class='btn bad' data-pd='${x.id}'>Delete</button></div></div>`).join('')+`</div>`;
+ c.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;const D=b.dataset;
+  if(b.id==='psv'){const n=$('#pn1').value.trim(),l=$('#pl1').value.trim(),g=$('#pg1').value.trim(),er=$('#pe1');
+   if(!n)return er.textContent='Project name is required.';if(l&&!ok(l))return er.textContent='Live URL must start with http:// or https://';if(g&&!ok(g))return er.textContent='GitHub URL must start with http:// or https://';
+   const was=ed?.live;if(ed)Object.assign(ed,{name:n,live:l,gh:g});else S.pl.push({id:Date.now()+'',name:n,live:l,gh:g});save();plE=null;if(l&&!was)xp(40,'· Project live!');projLinks()}
+  if(D.pe){plE=D.pe;projLinks()}
+  if(D.pd)ask('Delete this project?',()=>{S.pl=S.pl.filter(x=>x.id!==D.pd);save();projLinks()});
+  if(D.cp){const x=S.pl.find(y=>y.id===D.cp);navigator.clipboard?.writeText(x.live).then(()=>toast('Link copied!'),()=>toast('Copy failed. Select the link manually.'))}}}
+function proj(){return pOpen!==null?projStep():projList()}
+function projStep(){
+ const i=pOpen,p=PS[i],g=PG[i],R=S.proj[i]=S.proj[i]||{s:'Not Started'},ST=g[1].split('|'),ck=R.g=R.g||[];
+ let h=`<button class='btn alt' id='pb'>◀ All steps</button><div class='card'><h2>Step ${i+1} · ${esc(p[0])}</h2><span class='pill'>${p[1]}</span> <span class='pill'>${ck.filter(Boolean).length}/${ST.length} tasks</span><p>${esc(g[0])}</p></div>`;
+ h+=`<div class='card'><h3>Step-by-step learning</h3>${ST.map((s,k)=>`<label class='ck'><input type='checkbox' data-k='${k}' ${ck[k]?'checked':''}>${k+1}. ${esc(s)}</label>`).join('')}</div>`;
+ h+=`<div class='card'><h3>What to learn</h3><p>${esc(g[2])}</p><h3>Practice activity</h3><p>${esc(g[3])}</p><h3>Completion task</h3><p>${esc(g[4])}</p><h3>Final output</h3><p><b>${esc(g[5])}</b></p>${g[6]?`<h3>Example</h3><pre style='overflow-x:auto;white-space:pre-wrap;background:var(--bl);padding:10px;border-radius:10px'>${esc(g[6])}</pre>`:''}</div>`;
+ h+=`<div class='row'>${i>0?`<button class='btn alt' id='pp'>◀ Previous</button>`:''}<button class='btn' id='pd' ${R.s==='Completed'?'disabled':''}>${R.s==='Completed'?'Completed ✅':'Mark as Completed'}</button>${i<19?`<button class='btn alt' id='pn'>Next ▶</button>`:''}</div>`;
+ $('#main').innerHTML=h;
+ $('#main').onchange=e=>{const k=e.target.dataset.k;if(k!=null){ck[k]=e.target.checked?1:0;if(R.s==='Not Started')R.s='In Progress';save()}};
+ $('#main').onclick=e=>{const b=e.target.closest('button');if(!b)return;const m={pb:()=>{pOpen=null},pp:()=>{pOpen=i-1},pn:()=>{pOpen=i+1},pd:()=>{R.s='Completed';R.d=R.d||today();save();xp(20,'· Step cleared!')}}[b.id];if(m){m();proj();scrollTo(0,0)}}}
+function projList(){
+ 
+ const n=PS.filter((_,i)=>S.proj[i]?.s==='Completed').length,pct=n*5;
+ $('#main').innerHTML=`<div class="card"><h2>Project Quest · 20 Steps</h2><p class="mut">Build your Student Task Manager step by step.</p><div class="bar"><i style="width:${pct}%"></i></div><p><b>${n}/20</b> steps · ${pct}%</p>${pct===100?'<p><b>🏆 Congratulations! You have completed all 20 steps. Your project is ready for your portfolio and placement interviews.</b></p>':''}<button class="btn bad" id="rs">Reset Progress</button></div><div class="grid">`+PS.map((p,i)=>{const r=S.proj[i]||{s:'Not Started'};return`<div class="card ${r.s==='Completed'?'':''}" style="${r.s==='Completed'?'background:var(--gr)':''}"><b>Step ${i+1}</b> <span class="pill">${p[1]}</span><br>${esc(p[0])}<br><button class="btn alt" data-g="${i}">Open guide</button><select data-s="${i}">${['Not Started','In Progress','Completed'].map(s=>`<option ${r.s===s?'selected':''}>${s}</option>`).join('')}</select><input type="date" data-d="${i}" value="${esc(r.d||'')}" aria-label="Completion date"><input data-n="${i}" placeholder="Notes" value="${esc(r.n||'')}"><p class="mut" style="margin:6px 0 0;font-size:14px">Output: ${esc(PG[i][5])}</p></div>`}).join('')+'</div>';
+ $('#main').onchange=e=>{const t=e.target.dataset,r=S.proj[+(t.s??t.d??t.n)]=S.proj[+(t.s??t.d??t.n)]||{s:'Not Started'};
+  if(t.s!=null){const was=r.s;r.s=e.target.value;if(r.s==='Completed'&&was!=='Completed'){r.d=r.d||today();save();xp(20,'· Step cleared!')}else save();proj()}
+  if(t.d!=null){r.d=e.target.value;save()}if(t.n!=null){r.n=e.target.value;save()}};
+ projLinks();$('#main').onclick=e=>{const b=e.target.closest('[data-g]');if(b){pOpen=+b.dataset.g;proj();scrollTo(0,0)}};
+ $('#rs').onclick=()=>{ask('Reset all project progress?',()=>{S.proj={};save();proj()})}
+ $('#main').onclick=e=>{const g=e.target.closest('[data-g]');if(g){pOpen=+g.dataset.g;proj()}}}
+$('#th').onclick=()=>{const dk=getComputedStyle(document.body).backgroundColor==='rgb(238, 242, 251)';document.documentElement.dataset.theme=dk?'dark':'light'};
+
+const firebaseConfig={
+  apiKey: "AIzaSyAvkQSgN7EykhEnsa407_Us9bjQAVZTIBc",
+  authDomain: "placement-quest-game.firebaseapp.com",
+  projectId: "placement-quest-game",
+  storageBucket: "placement-quest-game.firebasestorage.app",
+  messagingSenderId: "990596661071",
+  appId: "1:990596661071:web:3c815b8513922890744f3a",
+  measurementId: "G-Z1BTLJHSBG"
+};
+const firebaseConfigured=!Object.values(firebaseConfig).some(v=>v.includes('YOUR_'));
+let appStarted=false;
+function startApp(){
+ if(appStarted)return;
+ appStarted=true;
+ $('#authLoading').hidden=true;
+ $('#authScreen').hidden=true;
+ $('#appShell').hidden=false;
+ hud();nav();render();
+}
+$('#googleLogin').onclick=async()=>{
+ $('#authError').textContent='';
+ if(!firebaseConfigured){
+  $('#authError').textContent='Add your Firebase web config in index.html, then enable Google sign-in.';
+  return;
+ }
+ try{
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+  await firebase.auth().signInWithPopup(provider);
+ }catch(e){
+  $('#authError').textContent=e.code==='auth/popup-blocked'?'Allow popups and try again.':(e.message||'Google sign-in failed.');
+ }
+};
+$('#authUser').onclick=async()=>{
+ if(confirm('Sign out of Placement Quest?'))await firebase.auth().signOut();
+};
+if(!firebaseConfigured){
+ $('#authLoading').hidden=true;
+ $('#authScreen').hidden=false;
+}else{
+ firebase.initializeApp(firebaseConfig);
+ firebase.auth().onAuthStateChanged(user=>{
+  if(user){
+   window.firebaseAuthUser=user;
+   $('#authUser').textContent=user.displayName||user.email||'Account';
+   document.documentElement.dataset.firebaseUid=user.uid;
+   startApp();
+   (async()=>{
+    const token=await user.getIdToken();
+    const headers={'Authorization':'Bearer '+token};
+    await fetch('/api/users',{method:'POST',headers});
+    const response=await fetch('/api/progress',{headers});
+    if(response.ok){
+     const saved=await response.json();
+     if(saved.state&&Object.keys(saved.state).length){
+      S=Object.assign(S,saved.state,{xp:Math.max(saved.xp||0,S.xp||0)});
+      try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}
+      hud();render();
+     }
+    }
+   })().catch(e=>console.error('Unable to sync progress with SQL database',e));
+  }else{
+   window.firebaseAuthUser=null;
+   $('#appShell').hidden=true;
+   $('#authLoading').hidden=true;
+   $('#authScreen').hidden=false;
+  }
+ });
+}
+</script></body></html>
