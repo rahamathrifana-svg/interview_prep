@@ -53,6 +53,7 @@ a{color:var(--blue)}.mut{color:var(--mut)}.row{display:flex;gap:8px;flex-wrap:wr
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head><body>
 <div class="auth-loading" id="authLoading">Loading Placement Quest...</div>
 <section class="auth-screen" id="authScreen" hidden>
@@ -84,14 +85,17 @@ async function queueProgressSave(){
  clearTimeout(progressSaveTimer);
  progressSaveTimer=setTimeout(async()=>{
   try{
-   const token=await window.firebaseAuthUser.getIdToken();
-   await fetch('/api/progress',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({
-    xp:S.xp,
-    challengeStartedAt:S.start,
-    theme:S.theme,
-    state:S
-   })});
-  }catch(e){console.error('Unable to save progress to SQL database',e)}
+   const {error}=await supabaseClient.from('user_progress').upsert({
+    user_id:window.firebaseAuthUser.uid,
+    email:window.firebaseAuthUser.email||'',
+    display_name:window.firebaseAuthUser.displayName||'',
+    photo_url:window.firebaseAuthUser.photoURL||'',
+    xp:S.xp||0,
+    progress:JSON.parse(JSON.stringify(S)),
+    updated_at:new Date().toISOString()
+   },{onConflict:'user_id'});
+   if(error)throw error;
+  }catch(e){console.error('Unable to save progress to Supabase',e)}
  },400);
 }
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -361,7 +365,13 @@ const firebaseConfig={
   appId: "1:990596661071:web:3c815b8513922890744f3a",
   measurementId: "G-Z1BTLJHSBG"
 };
+const supabaseConfig={
+ url:'https://gazibgwpfojqpzhmnssx.supabase.co',
+ anonKey:'sb_publishable_g7CxzjmCT488UDoVhG6F7A_NuEIKEJA'
+};
 const firebaseConfigured=!Object.values(firebaseConfig).some(v=>v.includes('YOUR_'));
+const supabaseConfigured=!Object.values(supabaseConfig).some(v=>v.includes('YOUR_'));
+let supabaseClient=null;
 let appStarted=false;
 function startApp(){
  if(appStarted)return;
@@ -386,13 +396,17 @@ $('#googleLogin').onclick=async()=>{
  }
 };
 $('#authUser').onclick=async()=>{
- if(confirm('Sign out of Placement Quest?'))await firebase.auth().signOut();
+ if(confirm('Sign out of Placement Quest?')){
+  if(supabaseClient)await supabaseClient.auth.signOut();
+  await firebase.auth().signOut();
+ }
 };
 if(!firebaseConfigured){
  $('#authLoading').hidden=true;
  $('#authScreen').hidden=false;
 }else{
  firebase.initializeApp(firebaseConfig);
+ if(supabaseConfigured)supabaseClient=window.supabase.createClient(supabaseConfig.url,supabaseConfig.anonKey);
  firebase.auth().onAuthStateChanged(user=>{
   if(user){
    window.firebaseAuthUser=user;
@@ -400,19 +414,21 @@ if(!firebaseConfigured){
    document.documentElement.dataset.firebaseUid=user.uid;
    startApp();
    (async()=>{
-    const token=await user.getIdToken();
-    const headers={'Authorization':'Bearer '+token};
-    await fetch('/api/users',{method:'POST',headers});
-    const response=await fetch('/api/progress',{headers});
-    if(response.ok){
-     const saved=await response.json();
-     if(saved.state&&Object.keys(saved.state).length){
-      S=Object.assign(S,saved.state,{xp:Math.max(saved.xp||0,S.xp||0)});
+    if(!supabaseClient){
+     $('#authError').textContent='Add your Supabase URL and anon key in index.html.';
+     return;
+    }
+    const firebaseToken=await user.getIdToken();
+    const {error:authError}=await supabaseClient.auth.signInWithIdToken({provider:'firebase',token:firebaseToken});
+    if(authError)throw authError;
+    const {data,error}=await supabaseClient.from('user_progress').select('xp,progress').eq('user_id',user.uid).maybeSingle();
+    if(error)throw error;
+    if(data?.progress&&Object.keys(data.progress).length){
+      S=Object.assign(S,data.progress,{xp:Math.max(data.xp||0,S.xp||0)});
       try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}
       hud();render();
-     }
     }
-   })().catch(e=>console.error('Unable to sync progress with SQL database',e));
+   })().catch(e=>console.error('Unable to sync progress with Supabase',e));
   }else{
    window.firebaseAuthUser=null;
    $('#appShell').hidden=true;

@@ -1,5 +1,1 @@
-.python-runtime/
-__pycache__/
-*.pyc
-placement_quest.db
 .vercel/
