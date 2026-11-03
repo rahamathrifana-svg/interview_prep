@@ -20,7 +20,7 @@ python -m http.server 8000
 
 Open `http://localhost:8000/index.html`.
 
-Firebase Authentication handles Google sign-in; Supabase stores user profiles and progress.
+Firebase Authentication handles Google sign-in. Learning progress is saved locally in this browser and is not synced across devices.
 
 ## 3. Publish with Vercel
 
@@ -39,19 +39,3 @@ npx vercel
 npx vercel --prod
 ```
 
-## 4. Connect Supabase
-
-1. Create a project at supabase.com.
-2. In **Authentication > Sign In / Providers > Third-party Auth**, add Firebase as a provider using Firebase project ID `placement-quest-game`.
-3. Run [supabase.sql](supabase.sql) in Supabase SQL Editor.
-4. Copy the Supabase Project URL and anon key.
-5. Set these values in the `supabaseConfig` object in [index.html](index.html):
-
-```javascript
-const supabaseConfig={
- url:'https://YOUR-PROJECT.supabase.co',
- anonKey:'YOUR_SUPABASE_ANON_KEY'
-};
-```
-
-Firebase continues to handle Google sign-in. The Firebase ID token is exchanged with Supabase, and the user's progress is stored in PostgreSQL. Supabase RLS policies allow access only to the matching Firebase UID.

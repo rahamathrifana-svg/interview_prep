@@ -53,14 +53,13 @@ a{color:var(--blue)}.mut{color:var(--mut)}.row{display:flex;gap:8px;flex-wrap:wr
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head><body>
 <div class="auth-loading" id="authLoading">Loading Placement Quest...</div>
 <section class="auth-screen" id="authScreen" hidden>
  <div class="auth-card">
   <div class="auth-logo">PQ</div>
   <h1>Placement Quest</h1>
-  <p>Sign in to sync your learning quest across devices.</p>
+  <p>Sign in to use Placement Quest. Progress is saved on this device.</p>
   <button class="google-btn" id="googleLogin" type="button">
    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.2c0-.64-.06-1.26-.16-1.85H12v3.51h5.24a4.48 4.48 0 0 1-1.94 2.94v2.4h3.15c1.84-1.69 2.9-4.18 2.9-7Z"/><path fill="#34A853" d="M12 21.75c2.62 0 4.82-.87 6.43-2.35l-3.15-2.4c-.87.58-1.98.93-3.28.93-2.52 0-4.66-1.7-5.42-3.99H3.33v2.47A9.4 9.4 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M6.58 13.94A5.65 5.65 0 0 1 6.28 12c0-.67.11-1.33.3-1.94V7.59H3.33A9.4 9.4 0 0 0 2.62 12c0 1.59.38 3.09 1.05 4.41l2.91-2.47Z"/><path fill="#EA4335" d="M12 6.07c1.43 0 2.7.49 3.71 1.45l2.79-2.79A9.04 9.04 0 0 0 12 2.25a9.4 9.4 0 0 0-8.67 5.34l3.25 2.47A5.72 5.72 0 0 1 12 6.07Z"/></svg>
    Continue with Google
@@ -78,26 +77,7 @@ const K='pq_v1';
 let S;
 try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 S=Object.assign({xp:0,start:null,checkins:[],lr:{},quiz:{},sun:{},certs:[],marks:[],li:{},proj:{},theme:null},S||{});
-let progressSaveTimer=null;
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Storage is full. Remove a PDF or use a certificate link instead.')}queueProgressSave()};
-async function queueProgressSave(){
- if(!window.firebaseAuthUser)return;
- clearTimeout(progressSaveTimer);
- progressSaveTimer=setTimeout(async()=>{
-  try{
-   const {error}=await supabaseClient.from('user_progress').upsert({
-    user_id:window.firebaseAuthUser.uid,
-    email:window.firebaseAuthUser.email||'',
-    display_name:window.firebaseAuthUser.displayName||'',
-    photo_url:window.firebaseAuthUser.photoURL||'',
-    xp:S.xp||0,
-    progress:JSON.parse(JSON.stringify(S)),
-    updated_at:new Date().toISOString()
-   },{onConflict:'user_id'});
-   if(error)throw error;
-  }catch(e){console.error('Unable to save progress to Supabase',e)}
- },400);
-}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Storage is full. Remove a PDF or use a certificate link instead.')}};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today=()=>ds(new Date());
@@ -366,13 +346,7 @@ const firebaseConfig={
   appId: "1:990596661071:web:3c815b8513922890744f3a",
   measurementId: "G-Z1BTLJHSBG"
 };
-const supabaseConfig={
- url:'https://gazibgwpfojqpzhmnssx.supabase.co',
- anonKey:'sb_publishable_g7CxzjmCT488UDoVhG6F7A_NuEIKEJA'
-};
 const firebaseConfigured=!Object.values(firebaseConfig).some(v=>v.includes('YOUR_'));
-const supabaseConfigured=!Object.values(supabaseConfig).some(v=>v.includes('YOUR_'));
-let supabaseClient=null;
 let appStarted=false;
 function startApp(){
  if(appStarted)return;
@@ -398,7 +372,6 @@ $('#googleLogin').onclick=async()=>{
 };
 $('#authUser').onclick=async()=>{
  if(confirm('Sign out of Placement Quest?')){
-  if(supabaseClient)await supabaseClient.auth.signOut();
   await firebase.auth().signOut();
  }
 };
@@ -407,29 +380,12 @@ if(!firebaseConfigured){
  $('#authScreen').hidden=false;
 }else{
  firebase.initializeApp(firebaseConfig);
- if(supabaseConfigured)supabaseClient=window.supabase.createClient(supabaseConfig.url,supabaseConfig.anonKey);
  firebase.auth().onAuthStateChanged(user=>{
   if(user){
    window.firebaseAuthUser=user;
    $('#authUser').textContent=user.displayName||user.email||'Account';
    document.documentElement.dataset.firebaseUid=user.uid;
    startApp();
-   (async()=>{
-    if(!supabaseClient){
-     $('#authError').textContent='Add your Supabase URL and anon key in index.html.';
-     return;
-    }
-    const firebaseToken=await user.getIdToken();
-    const {error:authError}=await supabaseClient.auth.signInWithIdToken({provider:'firebase',token:firebaseToken});
-    if(authError)throw authError;
-    const {data,error}=await supabaseClient.from('user_progress').select('xp,progress').eq('user_id',user.uid).maybeSingle();
-    if(error)throw error;
-    if(data?.progress&&Object.keys(data.progress).length){
-      S=Object.assign(S,data.progress,{xp:Math.max(data.xp||0,S.xp||0)});
-      try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}
-      hud();render();
-    }
-   })().catch(e=>console.error('Unable to sync progress with Supabase',e));
   }else{
    window.firebaseAuthUser=null;
    $('#appShell').hidden=true;
