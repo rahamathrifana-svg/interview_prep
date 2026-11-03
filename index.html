@@ -369,8 +369,8 @@ const supabaseConfig={
  url:'https://gazibgwpfojqpzhmnssx.supabase.co',
  anonKey:'sb_publishable_g7CxzjmCT488UDoVhG6F7A_NuEIKEJA'
 };
-const firebaseConfigured=!Object.values(firebaseConfig).some(v=>v.includes('YOUR_'));
-const supabaseConfigured=!Object.values(supabaseConfig).some(v=>v.includes('YOUR_'));
+const firebaseConfigured=!Object.values(firebaseConfig).some(v=>v.includes('placement-quest-game'));
+const supabaseConfigured=!Object.values(supabaseConfig).some(v=>v.includes('https://gazibgwpfojqpzhmnssx.supabase.co'));
 let supabaseClient=null;
 let appStarted=false;
 function startApp(){
