@@ -53,13 +53,14 @@ a{color:var(--blue)}.mut{color:var(--mut)}.row{display:flex;gap:8px;flex-wrap:wr
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head><body>
 <div class="auth-loading" id="authLoading">Loading Placement Quest...</div>
 <section class="auth-screen" id="authScreen" hidden>
  <div class="auth-card">
   <div class="auth-logo">PQ</div>
   <h1>Placement Quest</h1>
-  <p>Sign in to use Placement Quest. Progress is saved on this device.</p>
+  <p>Sign in to save and sync your learning progress.</p>
   <button class="google-btn" id="googleLogin" type="button">
    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.35 12.2c0-.64-.06-1.26-.16-1.85H12v3.51h5.24a4.48 4.48 0 0 1-1.94 2.94v2.4h3.15c1.84-1.69 2.9-4.18 2.9-7Z"/><path fill="#34A853" d="M12 21.75c2.62 0 4.82-.87 6.43-2.35l-3.15-2.4c-.87.58-1.98.93-3.28.93-2.52 0-4.66-1.7-5.42-3.99H3.33v2.47A9.4 9.4 0 0 0 12 21.75Z"/><path fill="#FBBC05" d="M6.58 13.94A5.65 5.65 0 0 1 6.28 12c0-.67.11-1.33.3-1.94V7.59H3.33A9.4 9.4 0 0 0 2.62 12c0 1.59.38 3.09 1.05 4.41l2.91-2.47Z"/><path fill="#EA4335" d="M12 6.07c1.43 0 2.7.49 3.71 1.45l2.79-2.79A9.04 9.04 0 0 0 12 2.25a9.4 9.4 0 0 0-8.67 5.34l3.25 2.47A5.72 5.72 0 0 1 12 6.07Z"/></svg>
    Continue with Google
@@ -77,7 +78,19 @@ const K='pq_v1';
 let S;
 try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 S=Object.assign({xp:0,start:null,checkins:[],lr:{},quiz:{},sun:{},certs:[],marks:[],li:{},proj:{},theme:null},S||{});
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Storage is full. Remove a PDF or use a certificate link instead.')}};
+let firestore=null,cloudProgressReady=false,progressSaveTimer=null;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('Storage is full. Remove a PDF or use a certificate link instead.')}queueCloudSave()};
+function queueCloudSave(){
+ if(!firestore||!cloudProgressReady||!window.firebaseAuthUser)return;
+ clearTimeout(progressSaveTimer);
+ progressSaveTimer=setTimeout(async()=>{
+  try{
+   await firestore.collection('user_progress').doc(window.firebaseAuthUser.uid).set({
+    progress:JSON.parse(JSON.stringify(S)),updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+   },{merge:true});
+  }catch(e){console.error('Unable to save progress to Firestore',e);toast('Cloud save failed. Your progress is still saved on this device.')}
+ },500);
+}
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today=()=>ds(new Date());
@@ -380,14 +393,30 @@ if(!firebaseConfigured){
  $('#authScreen').hidden=false;
 }else{
  firebase.initializeApp(firebaseConfig);
+ firestore=firebase.firestore();
  firebase.auth().onAuthStateChanged(user=>{
   if(user){
    window.firebaseAuthUser=user;
    $('#authUser').textContent=user.displayName||user.email||'Account';
    document.documentElement.dataset.firebaseUid=user.uid;
-   startApp();
+   cloudProgressReady=false;
+   firestore.collection('user_progress').doc(user.uid).get().then(doc=>{
+    if(doc.exists&&doc.data().progress){
+     const cloud=doc.data().progress;
+     S=Object.assign(S,cloud,{xp:Math.max(S.xp||0,cloud.xp||0)});
+     try{localStorage.setItem(K,JSON.stringify(S))}catch(e){console.error('Unable to cache cloud progress locally',e)}
+    }
+    cloudProgressReady=true;
+    startApp();
+    if(!doc.exists)queueCloudSave();
+   }).catch(e=>{
+    console.error('Unable to load progress from Firestore',e);
+    startApp();
+    toast('Cloud sync unavailable. Your progress is saved on this device.')
+   });
   }else{
    window.firebaseAuthUser=null;
+   cloudProgressReady=false;
    $('#appShell').hidden=true;
    $('#authLoading').hidden=true;
    $('#authScreen').hidden=false;

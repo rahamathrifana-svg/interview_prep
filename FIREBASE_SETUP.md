@@ -7,7 +7,20 @@
 3. In Firebase Authentication, enable Google.
 4. Add your deployed Vercel domain under Authentication > Settings > Authorized domains.
 5. Copy the Firebase web configuration into the `firebaseConfig` object in [index.html](index.html).
-6. No backend environment variables are required.
+6. In **Firestore Database**, create a database and publish these rules:
+
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /user_progress/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+No backend environment variables are required. Progress is cached in the browser and synced to `user_progress/{userId}` in Firestore when signed in.
 
 ## 2. Prepare the project
 
@@ -20,7 +33,7 @@ python -m http.server 8000
 
 Open `http://localhost:8000/index.html`.
 
-Firebase Authentication handles Google sign-in. Learning progress is saved locally in this browser and is not synced across devices.
+Firebase Authentication handles Google sign-in. Learning progress is saved locally and synced through Firestore across devices.
 
 ## 3. Publish with Vercel
 
